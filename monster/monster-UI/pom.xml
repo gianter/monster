@@ -1,0 +1,66 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.sungard.hackathlon</groupId>
+    <artifactId>monster</artifactId>
+    <packaging>POM</packaging>
+    <version>1.0</version>
+    <name>Monster App for SunGard Hackathon</name>
+    <inceptionYear>2014</inceptionYear>
+
+    <properties>
+        <maven.compiler.source>1.6</maven.compiler.source>
+        <maven.compiler.target>1.6</maven.compiler.target>
+        <encoding>UTF-8</encoding>
+        <javacpp.version>0.8</javacpp.version>
+        <javacv.version>0.8</javacv.version>
+    </properties>
+
+	<modules>
+		<module>monster-RI</module>
+	</modules>
+	
+    <repositories>
+        <repository>
+            <id>javacpp</id>
+            <name>JavaCPP</name>
+            <url>http://maven2.javacpp.googlecode.com/git/</url>
+        </repository>
+        <repository>
+            <id>javacv</id>
+            <name>JavaCV</name>
+            <url>http://maven2.javacv.googlecode.com/git/</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>javacpp</artifactId>
+            <version>${javacpp.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>javacv</artifactId>
+            <version>${javacv.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.imagej</groupId>
+            <artifactId>ij</artifactId>
+            <version>1.47h</version>
+        </dependency>
+        <!-- Test -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <sourceDirectory>src</sourceDirectory>
+        <testSourceDirectory>test/src</testSourceDirectory>
+    </build>
+
+</project>
