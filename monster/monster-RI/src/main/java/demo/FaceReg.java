@@ -73,7 +73,6 @@ public class FaceReg {
 	  /** the number of eigenvalues */
 	  int nEigens = 0;
 	  
-	  /** eigenvectors */
 	  IplImage[] eigenVectArr;
 	  /** eigenvalues */
 	  CvMat eigenValMat;
