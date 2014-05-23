@@ -179,6 +179,8 @@ public class FaceReg {
 
 	    // load the saved training data
 	    trainPersonNumMat = loadTrainingData();
+	    
+	    
 	    if (trainPersonNumMat == null) {
 	      return;
 	    }
@@ -780,7 +782,7 @@ public class FaceReg {
 	    final FaceReg faceRecognition = new FaceReg();
 	    //faceRecognition.learn("some-training-faces.txt");
 //	    faceRecognition.learn("all10.txt");
-//	    faceRecognition.learn("trainingperson.txt");
+	    faceRecognition.learn("trainingperson.txt");
 	    
 	    //faceRecognition.recognizeFileList("some-test-faces.txt");
 	    faceRecognition.recognizeFileList("testperson.txt");
