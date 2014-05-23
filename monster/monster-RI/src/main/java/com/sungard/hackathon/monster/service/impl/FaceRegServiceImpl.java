@@ -43,9 +43,10 @@ public class FaceRegServiceImpl implements FaceRegService {
 
 			float[] projectedTestFace = new float[fds.getnEigens()];
 			// project the test image onto the PCA subspace
-			cvEigenDecomposite(faceImage, fds.getnEigens(),
-					fds.getEigenVectArr(), 0, null, fds.getpAvgTrainImg(),
-					projectedTestFace);
+			//TODO
+//			cvEigenDecomposite(faceImage, fds.getnEigens(),
+//					fds.getEigenVectArr(), 0, null, fds.getpAvgTrainImg(),
+//					projectedTestFace);
 
 			float confidence = 0.0f;
 
@@ -129,6 +130,7 @@ public class FaceRegServiceImpl implements FaceRegService {
 
 		fds.setPersonNames(personNames);
 		fds.setnEigens(nEigens);
+		fds.setnTrainFaces(nTrainFaces);
 		fds.setEigenValMat(eigenValMat);
 		fds.setEigenVectArr(eigenVectArr);
 		fds.setProjectedTrainFaceMat(projectedTrainFaceMat);

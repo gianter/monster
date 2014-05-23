@@ -1,5 +1,6 @@
 package com.sungard.hackathon.monster.pojo;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Person {
@@ -7,7 +8,7 @@ public class Person {
 
 	private String phoneNumber;
 
-	private List<FaceImage> images;
+	private List<FaceImage> images = new ArrayList<FaceImage>();
 
 	public String getFullName() {
 		return fullName;

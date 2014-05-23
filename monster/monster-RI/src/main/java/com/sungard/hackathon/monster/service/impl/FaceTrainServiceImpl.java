@@ -69,8 +69,10 @@ public class FaceTrainServiceImpl implements FaceTrainService {
 				parseAndSave(person);
 			}
 
+			// perform PCA
 			FaceDataSet fds = doPCA();
 
+			// Store face data
 			storeTrainingData(fds);
 		}
 	}
@@ -80,7 +82,7 @@ public class FaceTrainServiceImpl implements FaceTrainService {
 		int i = 0;
 		for (FaceImage img : images) {
 			String imgName = FOLDER_TRAIN_IMG + File.separator
-					+ person.getFullName() + "_" + i + img.getSuffix();
+					+ person.getFullName() + "_" + i + "." + img.getSuffix();
 			FileUtils.saveImage(imgName, img.getData());
 			i++;
 			imageMap.put(imgName, person);
@@ -243,7 +245,6 @@ public class FaceTrainServiceImpl implements FaceTrainService {
 			final IplImage bigImg = cvCreateImage(size, IPL_DEPTH_8U, 1);
 
 			for (int i = 0; i < nEigens; i++) {
-				// Get the eigenface image.
 				IplImage byteImg = converToUcharImage(tc.getEigenVectArr()[i]);
 				// Paste it into the correct position.
 				int x = w * (i % COLUMNS);
@@ -265,7 +266,6 @@ public class FaceTrainServiceImpl implements FaceTrainService {
 	}
 
 	private IplImage converToUcharImage(IplImage srcImg) {
-		IplImage dstImg;
 		if ((srcImg != null) && (srcImg.width() > 0 && srcImg.height() > 0)) {
 			// Spread the 32bit floating point pixels to fit within 8bit pixel
 			// range.
@@ -284,8 +284,8 @@ public class FaceTrainServiceImpl implements FaceTrainService {
 				maxVal[0] = minVal[0] + 0.001; // remove potential divide by
 												// zero errors.
 			} // Convert the format
-			dstImg = cvCreateImage(cvSize(srcImg.width(), srcImg.height()), 8,
-					1);
+			IplImage dstImg = cvCreateImage(
+					cvSize(srcImg.width(), srcImg.height()), 8, 1);
 			cvConvertScale(srcImg, dstImg, 255.0 / (maxVal[0] - minVal[0]),
 					-minVal[0] * 255.0 / (maxVal[0] - minVal[0]));
 			return dstImg;
