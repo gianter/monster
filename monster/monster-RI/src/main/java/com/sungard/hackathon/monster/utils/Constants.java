@@ -5,7 +5,7 @@ public class Constants {
 
 	public static final String FACEDATA_PERSONS = "nPersons";
 
-	public static final String FACEDATA_PERSON_NAME = "PersonName_";
+	public static final String FACEDATA_PERSON_NAME = "personName_";
 
 	public static final String FACEDATA_EIGENS = "nEigens";
 
@@ -21,8 +21,8 @@ public class Constants {
 
 	public static final String FACEDATA_EIGENVECT = "eigenVect_";
 
-	public static final String FOLDER_TRAIN_IMG = "temp_train_img";
+	public static final String FOLDER_TRAIN_IMG = "temp/train";
 
-	public static final String FOLDER_TEST_IMG = "temp_test_img";
+	public static final String FOLDER_TEST_IMG = "temp/test";
 
 }

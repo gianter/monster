@@ -8,19 +8,31 @@ import org.bytedeco.javacpp.opencv_core.IplImage;
 
 public class FaceDataSet {
 
-	private List<String> personNames = new ArrayList<String>();
+	/** the number of training faces */
+	private int nTrainFaces = 0;
+	/** the training face image array */
+	IplImage[] trainingFaceImgArr;
+	/** the test face image array */
+	IplImage[] testFaceImgArr;
 
-	private int nTrainFaces;
+	/** the person number array */
+	CvMat personNumTruthMat;
+	/** the number of persons */
+	int nPersons;
+	/** the person names */
+	final List<String> personNames = new ArrayList<String>();
 
-	private int nEigens;
+	/** the number of eigenvalues */
+	int nEigens = 0;
 
-	private IplImage[] eigenVectArr;
-
-	private CvMat eigenValMat;
-
-	private IplImage pAvgTrainImg;
-
-	private CvMat projectedTrainFaceMat;
+	/** eigenvectors */
+	IplImage[] eigenVectArr;
+	/** eigenvalues */
+	CvMat eigenValMat;
+	/** the average image */
+	IplImage pAvgTrainImg;
+	/** the projected training faces */
+	CvMat projectedTrainFaceMat;
 
 	public int getnTrainFaces() {
 		return nTrainFaces;
@@ -30,12 +42,36 @@ public class FaceDataSet {
 		this.nTrainFaces = nTrainFaces;
 	}
 
-	public List<String> getPersonNames() {
-		return personNames;
+	public IplImage[] getTrainingFaceImgArr() {
+		return trainingFaceImgArr;
 	}
 
-	public void setPersonNames(List<String> personNames) {
-		this.personNames = personNames;
+	public void setTrainingFaceImgArr(IplImage[] trainingFaceImgArr) {
+		this.trainingFaceImgArr = trainingFaceImgArr;
+	}
+
+	public IplImage[] getTestFaceImgArr() {
+		return testFaceImgArr;
+	}
+
+	public void setTestFaceImgArr(IplImage[] testFaceImgArr) {
+		this.testFaceImgArr = testFaceImgArr;
+	}
+
+	public CvMat getPersonNumTruthMat() {
+		return personNumTruthMat;
+	}
+
+	public void setPersonNumTruthMat(CvMat personNumTruthMat) {
+		this.personNumTruthMat = personNumTruthMat;
+	}
+
+	public int getnPersons() {
+		return nPersons;
+	}
+
+	public void setnPersons(int nPersons) {
+		this.nPersons = nPersons;
 	}
 
 	public int getnEigens() {
@@ -76,6 +112,10 @@ public class FaceDataSet {
 
 	public void setProjectedTrainFaceMat(CvMat projectedTrainFaceMat) {
 		this.projectedTrainFaceMat = projectedTrainFaceMat;
+	}
+
+	public List<String> getPersonNames() {
+		return personNames;
 	}
 
 }

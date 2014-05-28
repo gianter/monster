@@ -5,6 +5,7 @@ import static com.sungard.hackathon.monster.utils.Constants.FOLDER_TRAIN_IMG;
 import static org.bytedeco.javacpp.helper.opencv_legacy.cvCalcEigenObjects;
 import static org.bytedeco.javacpp.helper.opencv_legacy.cvEigenDecomposite;
 import static org.bytedeco.javacpp.opencv_core.CV_32FC1;
+import static org.bytedeco.javacpp.opencv_core.CV_32SC1;
 import static org.bytedeco.javacpp.opencv_core.CV_L1;
 import static org.bytedeco.javacpp.opencv_core.CV_STORAGE_WRITE;
 import static org.bytedeco.javacpp.opencv_core.CV_TERMCRIT_ITER;
@@ -17,6 +18,7 @@ import static org.bytedeco.javacpp.opencv_core.cvCreateMat;
 import static org.bytedeco.javacpp.opencv_core.cvMinMaxLoc;
 import static org.bytedeco.javacpp.opencv_core.cvNormalize;
 import static org.bytedeco.javacpp.opencv_core.cvOpenFileStorage;
+import static org.bytedeco.javacpp.opencv_core.cvReadByName;
 import static org.bytedeco.javacpp.opencv_core.cvRect;
 import static org.bytedeco.javacpp.opencv_core.cvReleaseFileStorage;
 import static org.bytedeco.javacpp.opencv_core.cvReleaseImage;
@@ -34,14 +36,13 @@ import static org.bytedeco.javacpp.opencv_legacy.CV_EIGOBJ_NO_CALLBACK;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 
 import org.bytedeco.javacpp.FloatPointer;
+import org.bytedeco.javacpp.Pointer;
 import org.bytedeco.javacpp.opencv_core.CvFileStorage;
 import org.bytedeco.javacpp.opencv_core.CvMat;
 import org.bytedeco.javacpp.opencv_core.CvRect;
@@ -49,10 +50,11 @@ import org.bytedeco.javacpp.opencv_core.CvSize;
 import org.bytedeco.javacpp.opencv_core.CvTermCriteria;
 import org.bytedeco.javacpp.opencv_core.IplImage;
 
+import com.sungard.hackathon.monster.pojo.FaceDataSet;
 import com.sungard.hackathon.monster.pojo.FaceImage;
 import com.sungard.hackathon.monster.pojo.Person;
-import com.sungard.hackathon.monster.pojo.FaceDataSet;
 import com.sungard.hackathon.monster.service.FaceTrainService;
+import com.sungard.hackathon.monster.service.PersonImageEntry;
 import com.sungard.hackathon.monster.utils.Constants;
 import com.sungard.hackathon.monster.utils.FileUtils;
 
@@ -61,50 +63,59 @@ public class FaceTrainServiceImpl implements FaceTrainService {
 	private static final Logger LOGGER = Logger
 			.getLogger(FaceTrainServiceImpl.class.getName());
 
-	private static final Map<String, Person> imageMap = new HashMap<String, Person>();
-
 	public void analysisAll(List<Person> persons) {
+		FileUtils.initDirs();
+
 		if (persons != null && persons.size() != 0) {
-			for (Person person : persons) {
-				parseAndSave(person);
-			}
+			// parse and save image
+			List<PersonImageEntry> pies = parseAndSave(persons);
 
 			// perform PCA
-			FaceDataSet fds = doPCA();
+			FaceDataSet fds = doPCA(pies);
 
 			// Store face data
 			storeTrainingData(fds);
 		}
 	}
 
-	private void parseAndSave(Person person) {
-		List<FaceImage> images = person.getImages();
-		int i = 0;
-		for (FaceImage img : images) {
-			String imgName = FOLDER_TRAIN_IMG + File.separator
-					+ person.getFullName() + "_" + i + "." + img.getSuffix();
-			FileUtils.saveImage(imgName, img.getData());
-			i++;
-			imageMap.put(imgName, person);
+	private List<PersonImageEntry> parseAndSave(List<Person> persons) {
+		List<PersonImageEntry> pies = new ArrayList<PersonImageEntry>();
+		for (Person person : persons) {
+			List<FaceImage> images = person.getImages();
+			int i = 0;
+			for (FaceImage img : images) {
+				String imgName = FOLDER_TRAIN_IMG + File.separator
+						+ person.getFullName() + "_" + i + "."
+						+ img.getSuffix();
+				FileUtils.saveImage(imgName, img.getData());
+				i++;
+
+				PersonImageEntry pie = new PersonImageEntry();
+				pie.setImageName(imgName);
+				pie.setPerson(person);
+
+				pies.add(pie);
+			}
 		}
+
+		return pies;
 	}
 
-	private FaceDataSet doPCA() {
+	private FaceDataSet doPCA(List<PersonImageEntry> pies) {
 		FaceDataSet fds = new FaceDataSet();
 
 		// Load all of training face image
 		List<IplImage> trainFaceImgs = new ArrayList<IplImage>();
-		Iterator<Entry<String, Person>> it = imageMap.entrySet().iterator();
-		while (it.hasNext()) {
-			Entry<String, Person> entry = it.next();
-			IplImage face = cvLoadImage(entry.getKey(), CV_LOAD_IMAGE_GRAYSCALE);
 
+		for (PersonImageEntry pie : pies) {
+			IplImage face = cvLoadImage(pie.getImageName(),
+					CV_LOAD_IMAGE_GRAYSCALE);
 			if (face == null) {
 				throw new RuntimeException("Can't load image from "
-						+ entry.getKey());
+						+ pie.getImageName());
 			}
 			trainFaceImgs.add(face);
-			fds.getPersonNames().add(entry.getValue().getFullName());
+			fds.getPersonNames().add(pie.getPerson().getFullName());
 		}
 
 		IplImage[] trainingFaceImgArr = trainFaceImgs
@@ -112,6 +123,7 @@ public class FaceTrainServiceImpl implements FaceTrainService {
 
 		if (trainingFaceImgArr != null && trainingFaceImgArr.length != 0) {
 			CvSize faceImgSize = new CvSize();
+
 			faceImgSize.width(trainingFaceImgArr[0].width());
 			faceImgSize.height(trainingFaceImgArr[0].height());
 
@@ -143,6 +155,15 @@ public class FaceTrainServiceImpl implements FaceTrainService {
 
 			cvNormalize(eigenValMat, eigenValMat, 1, 0, CV_L1, null);
 
+			// Keep the data
+			CvMat personNumTruthMat = cvCreateMat(1, // rows
+					nTrainFaces, // cols
+					CV_32SC1); // type, 32-bit unsigned, one channel
+
+			for (int j1 = 0; j1 < nTrainFaces; j1++) {
+				personNumTruthMat.put(0, j1, 0);
+			}
+
 			// project the training images onto the PCA subspace
 			CvMat projectedTrainFaceMat = cvCreateMat(nTrainFaces, nEigens,
 					CV_32FC1);
@@ -152,6 +173,7 @@ public class FaceTrainServiceImpl implements FaceTrainService {
 				for (int j1 = 0; j1 < nEigens; j1++) {
 					projectedTrainFaceMat.put(i1, j1, 0.0);
 				}
+				personNumTruthMat.put(0, i1, i1 + 1);
 			}
 
 			final FloatPointer floatPointer = new FloatPointer(nEigens);
@@ -164,11 +186,14 @@ public class FaceTrainServiceImpl implements FaceTrainService {
 				}
 			}
 
+			fds.setnTrainFaces(nTrainFaces);
+			fds.setnPersons(nTrainFaces);
 			fds.setEigenValMat(eigenValMat);
 			fds.setEigenVectArr(eigenVectArr);
 			fds.setnEigens(nEigens);
 			fds.setpAvgTrainImg(pAvgTrainImg);
 			fds.setProjectedTrainFaceMat(projectedTrainFaceMat);
+			fds.setPersonNumTruthMat(personNumTruthMat);
 		}
 
 		return fds;
@@ -176,45 +201,106 @@ public class FaceTrainServiceImpl implements FaceTrainService {
 
 	public void storeTrainingData(FaceDataSet fds) {
 
+		LOGGER.info("writing facedata.xml");
+		CvFileStorage fileStorage;
+		int i;
 		// create a file-storage interface
-		CvFileStorage fileStorage = cvOpenFileStorage(FACEDATAFILE, null,
-				CV_STORAGE_WRITE, "UTF-8");
+		fileStorage = cvOpenFileStorage("facedata.xml", // filename
+				null, // memstorage
+				CV_STORAGE_WRITE, // flags
+				null); // encoding
 
-		// Store the person names.
-		cvWriteInt(fileStorage, Constants.FACEDATA_PERSONS, fds
-				.getPersonNames().size());
-		for (int i = 0; i < fds.getPersonNames().size(); i++) {
-			String varname = Constants.FACEDATA_PERSON_NAME + (i + 1);
-			cvWriteString(fileStorage, varname, fds.getPersonNames().get(i), 0);
+		// Store the person names. Added by Shervin.
+		cvWriteInt(fileStorage, // fs
+				"nPersons", // name
+				fds.getnPersons()); // value
+
+		for (i = 0; i < fds.getnPersons(); i++) {
+			String varname = "personName_" + (i + 1);
+			cvWriteString(fileStorage, // fs
+					varname, // name
+					fds.getPersonNames().get(i), // string
+					0); // quote
 		}
 
-		// Store nEigens
-		cvWriteInt(fileStorage, Constants.FACEDATA_EIGENS, fds.getPersonNames()
-				.size() - 1);
+		// store all the data
+		cvWriteInt(fileStorage, // fs
+				"nEigens", // name
+				fds.getnEigens()); // value
 
-		// Store train face number
-		cvWriteInt(fileStorage, Constants.FACEDATA_TRAINFACES, fds
-				.getPersonNames().size());
+		cvWriteInt(fileStorage, // fs
+				"nTrainFaces", // name
+				fds.getnTrainFaces()); // value
 
-		// Store eigenValMat
-		cvWrite(fileStorage, Constants.FACEDATA_MAT_EIGENVAL,
-				fds.getEigenValMat());
+		cvWrite(fileStorage, // fs
+				"trainPersonNumMat", // name
+				fds.getPersonNumTruthMat()); // value
 
-		// Store eprojectedTrainFaceMat
-		cvWrite(fileStorage, Constants.FACEDATA_MAT_PROJECTEDTRAINFACE,
+		cvWrite(fileStorage, // fs
+				"eigenValMat", // name
+				fds.getEigenValMat()); // value
+
+		cvWrite(fileStorage, // fs
+				"projectedTrainFaceMat", // name
 				fds.getProjectedTrainFaceMat());
 
-		// Store avgTrainImg
-		cvWrite(fileStorage, Constants.FACEDATA_IMG_AVGTRAIN,
-				fds.getpAvgTrainImg());
-		for (int i = 0; i < fds.getEigenVectArr().length; i++) {
-			IplImage image = fds.getEigenVectArr()[i];
-			String varname = Constants.FACEDATA_EIGENVECT + (i + 1);
-			cvWrite(fileStorage, varname, image);
+		cvWrite(fileStorage, // fs
+				"avgTrainImg", // name
+				fds.getpAvgTrainImg()); // value
+
+		for (i = 0; i < fds.getnEigens(); i++) {
+			String varname = "eigenVect_" + i;
+			cvWrite(fileStorage, // fs
+					varname, // name
+					fds.getEigenVectArr()[i]); // value
 		}
 
 		// release the file-storage interface
 		cvReleaseFileStorage(fileStorage);
+
+		// // create a file-storage interface
+		// CvFileStorage fileStorage = cvOpenFileStorage(FACEDATAFILE, null,
+		// CV_STORAGE_WRITE, null);
+		//
+		// // Store the person names.
+		// cvWriteInt(fileStorage, Constants.FACEDATA_PERSONS, fds
+		// .getPersonNames().size());
+		// for (int i = 0; i < fds.getPersonNames().size(); i++) {
+		// String varname = Constants.FACEDATA_PERSON_NAME + (i + 1);
+		// cvWriteString(fileStorage, varname, fds.getPersonNames().get(i), 0);
+		// }
+		//
+		// // Store nEigens
+		// cvWriteInt(fileStorage, Constants.FACEDATA_EIGENS,
+		// fds.getPersonNames()
+		// .size() - 1);
+		//
+		// // Store train face number
+		// cvWriteInt(fileStorage, Constants.FACEDATA_TRAINFACES, fds
+		// .getPersonNames().size());
+		//
+		// cvWrite(fileStorage, "trainPersonNumMat",
+		// fds.getPersonNumTruthMat());
+		//
+		// // Store eigenValMat
+		// cvWrite(fileStorage, Constants.FACEDATA_MAT_EIGENVAL,
+		// fds.getEigenValMat());
+		//
+		// // Store eprojectedTrainFaceMat
+		// cvWrite(fileStorage, Constants.FACEDATA_MAT_PROJECTEDTRAINFACE,
+		// fds.getProjectedTrainFaceMat());
+		//
+		// // Store avgTrainImg
+		// cvWrite(fileStorage, Constants.FACEDATA_IMG_AVGTRAIN,
+		// fds.getpAvgTrainImg());
+		// for (int i = 0; i < fds.getEigenVectArr().length; i++) {
+		// IplImage image = fds.getEigenVectArr()[i];
+		// String varname = Constants.FACEDATA_EIGENVECT + (i + 1);
+		// cvWrite(fileStorage, varname, image);
+		// }
+		//
+		// // release the file-storage interface
+		// cvReleaseFileStorage(fileStorage);
 
 		// store the face image
 		storeEigenfaceImages(fds);

@@ -16,6 +16,7 @@ import java.util.logging.Logger;
 
 import org.bytedeco.javacpp.FloatPointer;
 import org.bytedeco.javacpp.Pointer;
+import org.bytedeco.javacpp.PointerPointer;
 import org.bytedeco.javacpp.opencv_core.CvFileStorage;
 import org.bytedeco.javacpp.opencv_core.CvMat;
 import org.bytedeco.javacpp.opencv_core.IplImage;
@@ -31,31 +32,36 @@ public class FaceRegServiceImpl implements FaceRegService {
 			.getLogger(FaceRegServiceImpl.class.getName());
 
 	public String recogize(byte[] data) {
+
+		FileUtils.initDirs();
+
 		if (data != null) {
 			String suffix = "jpg";
 			String testImgName = FileUtils.genTestName(suffix);
 			FileUtils.saveImage(testImgName, data);
 
-			IplImage faceImage = cvLoadImage(testImgName,
-					CV_LOAD_IMAGE_GRAYSCALE);
-
 			FaceDataSet fds = loadFaceDB();
 
-			float[] projectedTestFace = new float[fds.getnEigens()];
+			final IplImage[] faceImages = new IplImage[1];
+			faceImages[0] = cvLoadImage(testImgName, CV_LOAD_IMAGE_GRAYSCALE);
+
+			float pConfidence = 0.0f;
+			int nEigens = fds.getnEigens();
+			IplImage pAvgTrainImg = fds.getpAvgTrainImg();
+			IplImage[] eigenVectArr = fds.getEigenVectArr();
+
 			// project the test image onto the PCA subspace
-			//TODO
-//			cvEigenDecomposite(faceImage, fds.getnEigens(),
-//					fds.getEigenVectArr(), 0, null, fds.getpAvgTrainImg(),
-//					projectedTestFace);
+			// final FloatPointer floatPointer = new FloatPointer(nEigens);
+			float[] floatPointer = new float[nEigens];
 
-			float confidence = 0.0f;
+			cvEigenDecomposite(faceImages[0], nEigens, eigenVectArr, 0, null,
+					pAvgTrainImg, floatPointer);
 
-			final FloatPointer pConfidence = new FloatPointer(confidence);
-
-			int iNearest = findNearestNeighbor(fds, projectedTestFace,
+			int iNearest = findNearestNeighbor(fds, floatPointer,
 					new FloatPointer(pConfidence));
 
-			return fds.getPersonNames().get(iNearest);
+			String personName = fds.getPersonNames().get(iNearest);
+			return personName;
 		}
 
 		return null;
@@ -64,21 +70,22 @@ public class FaceRegServiceImpl implements FaceRegService {
 	private FaceDataSet loadFaceDB() {
 		FaceDataSet fds = new FaceDataSet();
 
-		List<String> personNames = new ArrayList<String>();
 		LOGGER.info("loading training data");
-		// open the file-storage number
-		CvFileStorage fileStorage = cvOpenFileStorage(Constants.FACEDATAFILE,
-				null, CV_STORAGE_READ, "UTF-8");
+		CvMat pTrainPersonNumMat = null; // the person numbers during training
+		CvFileStorage fileStorage;
+		int i;
 
+		// create a file-storage interface
+		fileStorage = cvOpenFileStorage("facedata.xml", null, CV_STORAGE_READ,
+				null);
 		if (fileStorage == null) {
 			LOGGER.severe("Can't open training database file 'facedata.xml'.");
 			return null;
 		}
 
 		// Load the person names.
-		int nPersons = cvReadIntByName(fileStorage, null,
-				Constants.FACEDATA_PERSONS, 0);
-
+		fds.getPersonNames().clear(); // Make sure it starts as empty.
+		int nPersons = cvReadIntByName(fileStorage, null, "nPersons", 0);
 		if (nPersons == 0) {
 			LOGGER.severe("No people found in the training database 'facedata.xml'.");
 			return null;
@@ -87,40 +94,33 @@ public class FaceRegServiceImpl implements FaceRegService {
 		}
 
 		// Load each person's name.
-		for (int i = 0; i < nPersons; i++) {
-			String varname = Constants.FACEDATA_PERSON_NAME + (i + 1);
-			String sPersonName = cvReadStringByName(fileStorage, null, varname,
-					"");
-			personNames.add(sPersonName);
+		for (i = 0; i < nPersons; i++) {
+			String sPersonName;
+			String varname = "personName_" + (i + 1);
+			sPersonName = cvReadStringByName(fileStorage, // fs
+					null, varname, "");
+			fds.getPersonNames().add(sPersonName);
 		}
-		LOGGER.info("person names: " + personNames);
+		LOGGER.info("person names: " + fds.getPersonNames());
 
 		// Load the data
-		int nEigens = cvReadIntByName(fileStorage, null,
-				Constants.FACEDATA_EIGENS, 0);
-		int nTrainFaces = cvReadIntByName(fileStorage, null,
-				Constants.FACEDATA_TRAINFACES, 0);
+		int nEigens = cvReadIntByName(fileStorage, null, "nEigens", 0);
+		int nTrainFaces = cvReadIntByName(fileStorage, null, "nTrainFaces", 0);
+		Pointer pointer = cvReadByName(fileStorage, null, "trainPersonNumMat");
+		pTrainPersonNumMat = new CvMat(pointer);
 
-		Pointer pointer = cvReadByName(fileStorage, null,
-				Constants.FACEDATA_MAT_TRAINPERSONNUM);
-		CvMat pTrainPersonNumMat = new CvMat(pointer);
-
-		pointer = cvReadByName(fileStorage, null,
-				Constants.FACEDATA_MAT_EIGENVAL);
+		pointer = cvReadByName(fileStorage, null, "eigenValMat");
 		CvMat eigenValMat = new CvMat(pointer);
 
-		pointer = cvReadByName(fileStorage, null,
-				Constants.FACEDATA_MAT_PROJECTEDTRAINFACE);
+		pointer = cvReadByName(fileStorage, null, "projectedTrainFaceMat");
 		CvMat projectedTrainFaceMat = new CvMat(pointer);
 
-		pointer = cvReadByName(fileStorage, null,
-				Constants.FACEDATA_IMG_AVGTRAIN);
-
+		pointer = cvReadByName(fileStorage, null, "avgTrainImg");
 		IplImage pAvgTrainImg = new IplImage(pointer);
 
 		IplImage[] eigenVectArr = new IplImage[nTrainFaces];
-		for (int i = 0; i <= nEigens; i++) {
-			String varname = Constants.FACEDATA_EIGENVECT + i;
+		for (i = 0; i <= nEigens; i++) {
+			String varname = "eigenVect_" + i;
 			pointer = cvReadByName(fileStorage, null, varname);
 			eigenVectArr[i] = new IplImage(pointer);
 		}
@@ -128,21 +128,24 @@ public class FaceRegServiceImpl implements FaceRegService {
 		// release the file-storage interface
 		cvReleaseFileStorage(fileStorage);
 
-		fds.setPersonNames(personNames);
+		LOGGER.info("Training data loaded (" + nTrainFaces
+				+ " training images of " + nPersons + " people)");
+		final StringBuilder stringBuilder = new StringBuilder();
+		stringBuilder.append("People: ");
+		
 		fds.setnEigens(nEigens);
 		fds.setnTrainFaces(nTrainFaces);
-		fds.setEigenValMat(eigenValMat);
-		fds.setEigenVectArr(eigenVectArr);
-		fds.setProjectedTrainFaceMat(projectedTrainFaceMat);
+		fds.setnPersons(nPersons);
 		fds.setpAvgTrainImg(pAvgTrainImg);
+		fds.setEigenVectArr(eigenVectArr);
+		fds.setEigenValMat(eigenValMat);
+		fds.setProjectedTrainFaceMat(projectedTrainFaceMat);
+		fds.setPersonNumTruthMat(pTrainPersonNumMat);
+
 		return fds;
 	}
 
-	/**
-	 * Find the most likely person based on a detection. Returns the index, and
-	 * stores the confidence value into pConfidence.
-	 */
-	private int findNearestNeighbor(FaceDataSet fds, float projectedTestFace[],
+	private int findNearestNeighbor(FaceDataSet fds, float[] projectedTestFace,
 			FloatPointer pConfidencePointer) {
 		double leastDistSq = Double.MAX_VALUE;
 		int iNearest = 0;
@@ -155,27 +158,36 @@ public class FaceRegServiceImpl implements FaceRegService {
 						.getProjectedTrainFaceMat().get(iTrain, i);
 
 				float d_i = projectedTestFace[i] - projectedTrainFaceDistance;
+
 				distSq += d_i * d_i;
 			}
+
+			LOGGER.info("face " + (iTrain) + " has squared distance: " + distSq);
 
 			if (distSq < leastDistSq) {
 				leastDistSq = distSq;
 				iNearest = iTrain;
-				LOGGER.info("training face " + (iTrain + 1)
+				LOGGER.info("training face " + (iTrain)
 						+ " is the new best match, least squared distance: "
 						+ leastDistSq);
 			}
+
 		}
 
 		// Return the confidence level based on the Euclidean distance,
 		// so that similar images should give a confidence between 0.5 to 1.0,
 		// and very different images should give a confidence between 0.0 to
 		// 0.5.
+		LOGGER.info("leastDistSq: " + leastDistSq);
+
 		float pConfidence = (float) (1.0f - Math.sqrt(leastDistSq
 				/ (float) (fds.getnTrainFaces() * fds.getnEigens())) / 255.0f);
-		pConfidencePointer.put(pConfidence);
 
-		LOGGER.info("training face " + (iNearest + 1)
+		LOGGER.info("pConfidence: " + pConfidence);
+
+		// pConfidencePointer.put(pConfidence);
+
+		LOGGER.info("training face " + (iNearest)
 				+ " is the final best match, confidence " + pConfidence);
 		return iNearest;
 	}

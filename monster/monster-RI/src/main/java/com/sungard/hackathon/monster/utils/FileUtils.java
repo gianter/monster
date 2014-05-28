@@ -7,6 +7,18 @@ import java.io.IOException;
 
 public class FileUtils {
 
+	public static void initDirs() {
+		mkdirs(Constants.FOLDER_TRAIN_IMG);
+		mkdirs(Constants.FOLDER_TEST_IMG);
+	}
+	
+	public static void mkdirs(String folderString) {
+		File folder = new File(folderString);
+		if (!folder.exists()) {
+			folder.mkdirs();
+		}
+	}
+
 	public static String genTestName(String suffix) {
 		return Constants.FOLDER_TEST_IMG + File.separator + System.nanoTime()
 				+ "." + suffix;

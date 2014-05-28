@@ -53,9 +53,9 @@ import org.bytedeco.javacpp.opencv_core.CvSize;
 import org.bytedeco.javacpp.opencv_core.CvTermCriteria;
 import org.bytedeco.javacpp.opencv_core.IplImage;
 
-public class FaceReg {
+public class FaceReg2 {
 
-	  private static final Logger LOGGER = Logger.getLogger(FaceReg.class.getName());
+	  private static final Logger LOGGER = Logger.getLogger(FaceReg2.class.getName());
 	  /** the number of training faces */
 	  private int nTrainFaces = 0;
 	  /** the training face image array */
@@ -73,7 +73,6 @@ public class FaceReg {
 	  /** the number of eigenvalues */
 	  int nEigens = 0;
 	  
-	  /** eigenvectors */
 	  IplImage[] eigenVectArr;
 	  /** eigenvalues */
 	  CvMat eigenValMat;
@@ -83,7 +82,7 @@ public class FaceReg {
 	  CvMat projectedTrainFaceMat;
 
 	  /** Constructs a new FaceRecognition instance. */
-	  public FaceReg() {
+	  public FaceReg2() {
 	  }
 
 	  /** Trains from the data in the given training text index file, and store the trained data into the file 'facedata.xml'.
@@ -99,11 +98,11 @@ public class FaceReg {
 	    
 	    nTrainFaces = trainingFaceImgArr.length;
 	    LOGGER.info("Got " + nTrainFaces + " training images");
-//	    if (nTrainFaces < 3) {
-//	      LOGGER.severe("Need 3 or more training faces\n"
-//	              + "Input file contains only " + nTrainFaces);
-//	      return;
-//	    }
+	    if (nTrainFaces < 3) {
+	      LOGGER.severe("Need 3 or more training faces\n"
+	              + "Input file contains only " + nTrainFaces);
+	      return;
+	    }
 
 	    // do Principal Component Analysis on the training faces
 	    doPCA();
@@ -174,12 +173,15 @@ public class FaceReg {
 
 	    // load test images and ground truth for person number
 	    testFaceImgArr = loadFaceImgArray(szFileTest);
+	    
 	    nTestFaces = testFaceImgArr.length;
 
 	    LOGGER.info(nTestFaces + " test faces loaded");
 
 	    // load the saved training data
 	    trainPersonNumMat = loadTrainingData();
+	    
+	    
 	    if (trainPersonNumMat == null) {
 	      return;
 	    }
@@ -242,20 +244,22 @@ public class FaceReg {
 	    int i;
 	    try {
 	    	
-	      // open the input file
-	      imgListFile = new BufferedReader(new FileReader(filename));
-	      // count the number of faces
-	      while (true) {
-	        final String line = imgListFile.readLine();
-	        
-	        if (line == null || line.isEmpty()) {
-	          break;
-	        }
-	        nFaces++;
-	      }
+//	      // open the input file
+//	      imgListFile = new BufferedReader(new FileReader(filename));
+//	      // count the number of faces
+//	      while (true) {
+//	        final String line = imgListFile.readLine();
+//	        
+//	        if (line == null || line.isEmpty()) {
+//	          break;
+//	        }
+//	        nFaces++;
+//	      }
+	      nFaces = 1; 
+	      
 	      
 	      LOGGER.info("nFaces: " + nFaces);
-	      imgListFile = new BufferedReader(new FileReader(filename));
+//	      imgListFile = new BufferedReader(new FileReader(filename));
 
 	      // allocate the face-image array and person number matrix
 	      faceImgArr = new IplImage[nFaces];
@@ -280,15 +284,16 @@ public class FaceReg {
 	        int personNumber;
 
 	        // read person number (beginning with 1), their name and the image filename.
-	        final String line = imgListFile.readLine();
-	        if (line.isEmpty()) {
-	          break;
-	        }
-	        final String[] tokens = line.split(" ");
-	        personNumber = Integer.parseInt(tokens[0]);
-	        personName = tokens[1];
-	        imgFilename = tokens[2];
-	        sPersonName = personName;
+//	        final String line = imgListFile.readLine();
+//	        if (line.isEmpty()) {
+//	          break;
+//	        }
+	        
+//	        final String[] tokens = line.split(" ");
+	        personNumber = 1;
+	        personName = "who";
+	        imgFilename = filename;
+	        sPersonName = "who";
 	        LOGGER.info("Got " + iFace + " " + personNumber + " " + personName + " " + imgFilename);
 
 	        // Check if a new person is being loaded.
@@ -300,10 +305,10 @@ public class FaceReg {
 	        }
 
 	        // Keep the data
-//	        personNumTruthMat.put(
-//	                0, // i
-//	                iFace, // j
-//	                personNumber); // v
+	        personNumTruthMat.put(
+	                0, // i
+	                iFace, // j
+	                personNumber); // v
 
 	        // load the face image
 	        faceImgArr[iFace] = cvLoadImage(
@@ -315,22 +320,23 @@ public class FaceReg {
 	        }
 	      }
 
-	      imgListFile.close();
+//	      imgListFile.close();
 
-	    } catch (IOException ex) {
+	    }
+	    catch (Exception ex) {
 	      throw new RuntimeException(ex);
 	    }
 
-//	    LOGGER.info("Data loaded from '" + filename + "': (" + nFaces + " images of " + nPersons + " people).");
-//	    final StringBuilder stringBuilder = new StringBuilder();
-//	    stringBuilder.append("People: ");
-//	    if (nPersons > 0) {
-//	      stringBuilder.append("<").append(personNames.get(0)).append(">");
-//	    }
-//	    for (i = 1; i < nPersons && i < personNames.size(); i++) {
-//	      stringBuilder.append(", <").append(personNames.get(i)).append(">");
-//	    }
-//	    LOGGER.info(stringBuilder.toString());
+	    LOGGER.info("Data loaded from '" + filename + "': (" + nFaces + " images of " + nPersons + " people).");
+	    final StringBuilder stringBuilder = new StringBuilder();
+	    stringBuilder.append("People: ");
+	    if (nPersons > 0) {
+	      stringBuilder.append("<").append(personNames.get(0)).append(">");
+	    }
+	    for (i = 1; i < nPersons && i < personNames.size(); i++) {
+	      stringBuilder.append(", <").append(personNames.get(i)).append(">");
+	    }
+	    LOGGER.info(stringBuilder.toString());
 
 	    return faceImgArr;
 	  }
@@ -509,7 +515,7 @@ public class FaceReg {
 	    // Load each person's name.
 	    for (i = 0; i < nPersons; i++) {
 	      String sPersonName;
-	      String varname = "personName_" + (i + 1);
+	      String varname = "PersonName_" + (i + 1);
 	      sPersonName = cvReadStringByName(
 	              fileStorage, // fs
 	              null, // map
@@ -778,14 +784,13 @@ public class FaceReg {
 	   */
 	  public static void main(final String[] args) {
 
-	    final FaceReg faceRecognition = new FaceReg();
+	    final FaceReg2 faceRecognition = new FaceReg2();
 	    //faceRecognition.learn("some-training-faces.txt");
 //	    faceRecognition.learn("all10.txt");
 //	    faceRecognition.learn("trainingperson.txt");
 	    
 	    //faceRecognition.recognizeFileList("some-test-faces.txt");
-	    faceRecognition.recognizeFileList("testperson.txt");
+//	    faceRecognition.recognizeFileList("testperson.txt");
+	    faceRecognition.recognizeFileList("test/W3.jpg");
 	  }
 }
-
-
