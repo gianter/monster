@@ -3,6 +3,10 @@ package com.sungard.hackathon.monster.utils;
 public class Constants {
 	public static final String FACEDATAFILE = "facedata.xml";
 
+	public static final int IMG_WDITH = 236;
+
+	public static final int IMG_HEIGHT = 384;
+
 	public static final String FACEDATA_PERSONS = "nPersons";
 
 	public static final String FACEDATA_PERSON_NAME = "personName_";

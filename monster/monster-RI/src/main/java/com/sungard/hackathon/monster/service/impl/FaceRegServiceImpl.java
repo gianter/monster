@@ -25,6 +25,7 @@ import com.sungard.hackathon.monster.pojo.FaceDataSet;
 import com.sungard.hackathon.monster.service.FaceRegService;
 import com.sungard.hackathon.monster.utils.Constants;
 import com.sungard.hackathon.monster.utils.FileUtils;
+import com.sungard.hackathon.monster.utils.ImgUtil;
 
 public class FaceRegServiceImpl implements FaceRegService {
 
@@ -42,19 +43,20 @@ public class FaceRegServiceImpl implements FaceRegService {
 
 			FaceDataSet fds = loadFaceDB();
 
-			final IplImage[] faceImages = new IplImage[1];
-			faceImages[0] = cvLoadImage(testImgName, CV_LOAD_IMAGE_GRAYSCALE);
-
+//			final IplImage[] faceImages = new IplImage[1];
+			IplImage orinigalImg = cvLoadImage(testImgName, CV_LOAD_IMAGE_GRAYSCALE);
+			 
+			IplImage faceImages=  ImgUtil.standardizeImage(orinigalImg);
+			
 			float pConfidence = 0.0f;
 			int nEigens = fds.getnEigens();
 			IplImage pAvgTrainImg = fds.getpAvgTrainImg();
 			IplImage[] eigenVectArr = fds.getEigenVectArr();
 
-			// project the test image onto the PCA subspace
 			// final FloatPointer floatPointer = new FloatPointer(nEigens);
 			float[] floatPointer = new float[nEigens];
 
-			cvEigenDecomposite(faceImages[0], nEigens, eigenVectArr, 0, null,
+			cvEigenDecomposite(faceImages, nEigens, eigenVectArr, 0, null,
 					pAvgTrainImg, floatPointer);
 
 			int iNearest = findNearestNeighbor(fds, floatPointer,

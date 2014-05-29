@@ -57,6 +57,7 @@ import com.sungard.hackathon.monster.service.FaceTrainService;
 import com.sungard.hackathon.monster.service.PersonImageEntry;
 import com.sungard.hackathon.monster.utils.Constants;
 import com.sungard.hackathon.monster.utils.FileUtils;
+import com.sungard.hackathon.monster.utils.ImgUtil;
 
 public class FaceTrainServiceImpl implements FaceTrainService {
 
@@ -84,14 +85,25 @@ public class FaceTrainServiceImpl implements FaceTrainService {
 			List<FaceImage> images = person.getImages();
 			int i = 0;
 			for (FaceImage img : images) {
-				String imgName = FOLDER_TRAIN_IMG + File.separator
+				String orinigalName = FOLDER_TRAIN_IMG + File.separator
 						+ person.getFullName() + "_" + i + "."
 						+ img.getSuffix();
-				FileUtils.saveImage(imgName, img.getData());
-				i++;
+				FileUtils.saveImage(orinigalName, img.getData());
 
+				IplImage greyImg = cvLoadImage(orinigalName,
+						CV_LOAD_IMAGE_GRAYSCALE);
+
+				IplImage finalImg = ImgUtil.standardizeImage(greyImg);
+
+				String finalImgName = FOLDER_TRAIN_IMG + File.separator
+						+ person.getFullName() + "_final_" + i + "."
+						+ img.getSuffix();
+
+				ImgUtil.saveImage(finalImg, finalImgName);
+
+				i++;
 				PersonImageEntry pie = new PersonImageEntry();
-				pie.setImageName(imgName);
+				pie.setImageName(finalImgName);
 				pie.setPerson(person);
 
 				pies.add(pie);
@@ -108,13 +120,14 @@ public class FaceTrainServiceImpl implements FaceTrainService {
 		List<IplImage> trainFaceImgs = new ArrayList<IplImage>();
 
 		for (PersonImageEntry pie : pies) {
-			IplImage face = cvLoadImage(pie.getImageName(),
+			IplImage originalface = cvLoadImage(pie.getImageName(),
 					CV_LOAD_IMAGE_GRAYSCALE);
-			if (face == null) {
+			if (originalface == null) {
 				throw new RuntimeException("Can't load image from "
 						+ pie.getImageName());
 			}
-			trainFaceImgs.add(face);
+
+			trainFaceImgs.add(originalface);
 			fds.getPersonNames().add(pie.getPerson().getFullName());
 		}
 
