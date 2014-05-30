@@ -6,6 +6,8 @@ public class Constants {
 	public static final int IMG_WDITH = 236;
 
 	public static final int IMG_HEIGHT = 384;
+	
+	public static final String faceDectionConfig = "haarcascade_frontalface_alt.xml";
 
 	public static final String FACEDATA_PERSONS = "nPersons";
 

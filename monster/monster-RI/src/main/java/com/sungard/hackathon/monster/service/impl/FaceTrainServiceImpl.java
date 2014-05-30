@@ -90,23 +90,26 @@ public class FaceTrainServiceImpl implements FaceTrainService {
 						+ img.getSuffix();
 				FileUtils.saveImage(orinigalName, img.getData());
 
-				IplImage greyImg = cvLoadImage(orinigalName,
+				IplImage greyImage = cvLoadImage(orinigalName,
 						CV_LOAD_IMAGE_GRAYSCALE);
 
-				IplImage finalImg = ImgUtil.standardizeImage(greyImg);
+				// IplImage finalImg = ImgUtil.standardizeImage(greyImg);
+				IplImage[] finalFaceImgs = ImgUtil.detectFaceImages(greyImage);
 
-				String finalImgName = FOLDER_TRAIN_IMG + File.separator
-						+ person.getFullName() + "_final_" + i + "."
-						+ img.getSuffix();
+				for (int j = 0; j < finalFaceImgs.length; j++) {
+					String finalImgName = FOLDER_TRAIN_IMG + File.separator
+							+ person.getFullName() + "_" + i + "_face_" + j
+							+ "." + img.getSuffix();
 
-				ImgUtil.saveImage(finalImg, finalImgName);
+					ImgUtil.saveImage(finalFaceImgs[j], finalImgName);
+					
+					PersonImageEntry pie = new PersonImageEntry();
+					pie.setImageName(finalImgName);
+					pie.setPerson(person);
+					pies.add(pie);
+				}
 
 				i++;
-				PersonImageEntry pie = new PersonImageEntry();
-				pie.setImageName(finalImgName);
-				pie.setPerson(person);
-
-				pies.add(pie);
 			}
 		}
 

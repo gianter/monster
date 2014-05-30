@@ -35,7 +35,7 @@ public class FaceRegServiceImpl implements FaceRegService {
 	public String recogize(byte[] data) {
 
 		FileUtils.initDirs();
-
+		String personName = "Error! Not Found";
 		if (data != null) {
 			String suffix = "jpg";
 			String testImgName = FileUtils.genTestName(suffix);
@@ -43,11 +43,11 @@ public class FaceRegServiceImpl implements FaceRegService {
 
 			FaceDataSet fds = loadFaceDB();
 
-//			final IplImage[] faceImages = new IplImage[1];
-			IplImage orinigalImg = cvLoadImage(testImgName, CV_LOAD_IMAGE_GRAYSCALE);
-			 
-			IplImage faceImages=  ImgUtil.standardizeImage(orinigalImg);
-			
+			IplImage orinigalImg = cvLoadImage(testImgName,
+					CV_LOAD_IMAGE_GRAYSCALE);
+
+			IplImage[] faceImages = ImgUtil.detectFaceImages(orinigalImg);
+
 			float pConfidence = 0.0f;
 			int nEigens = fds.getnEigens();
 			IplImage pAvgTrainImg = fds.getpAvgTrainImg();
@@ -56,17 +56,21 @@ public class FaceRegServiceImpl implements FaceRegService {
 			// final FloatPointer floatPointer = new FloatPointer(nEigens);
 			float[] floatPointer = new float[nEigens];
 
-			cvEigenDecomposite(faceImages, nEigens, eigenVectArr, 0, null,
+			cvEigenDecomposite(faceImages[0], nEigens, eigenVectArr, 0, null,
 					pAvgTrainImg, floatPointer);
 
 			int iNearest = findNearestNeighbor(fds, floatPointer,
 					new FloatPointer(pConfidence));
 
-			String personName = fds.getPersonNames().get(iNearest);
-			return personName;
+			if (iNearest > -1) {
+				personName = fds.getPersonNames().get(iNearest);
+				LOGGER.info("Person matched! Found " + personName + " !");
+			} else {
+				LOGGER.info("Could not found match person: ");
+			}
 		}
 
-		return null;
+		return personName;
 	}
 
 	private FaceDataSet loadFaceDB() {
@@ -134,7 +138,7 @@ public class FaceRegServiceImpl implements FaceRegService {
 				+ " training images of " + nPersons + " people)");
 		final StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("People: ");
-		
+
 		fds.setnEigens(nEigens);
 		fds.setnTrainFaces(nTrainFaces);
 		fds.setnPersons(nPersons);
@@ -165,7 +169,6 @@ public class FaceRegServiceImpl implements FaceRegService {
 			}
 
 			LOGGER.info("face " + (iTrain) + " has squared distance: " + distSq);
-
 			if (distSq < leastDistSq) {
 				leastDistSq = distSq;
 				iNearest = iTrain;
@@ -186,6 +189,10 @@ public class FaceRegServiceImpl implements FaceRegService {
 				/ (float) (fds.getnTrainFaces() * fds.getnEigens())) / 255.0f);
 
 		LOGGER.info("pConfidence: " + pConfidence);
+
+		if (new Float(pConfidence).compareTo(new Float(-1)) < 0) {
+			return -1;
+		}
 
 		// pConfidencePointer.put(pConfidence);
 

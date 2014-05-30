@@ -1,8 +1,13 @@
 package com.sungard.hackathon.monster.utils;
 
+import static org.bytedeco.javacpp.helper.opencv_objdetect.cvHaarDetectObjects;
 import static org.bytedeco.javacpp.opencv_core.CV_32F;
 import static org.bytedeco.javacpp.opencv_core.IPL_DEPTH_8U;
+import static org.bytedeco.javacpp.opencv_core.cvCopy;
 import static org.bytedeco.javacpp.opencv_core.cvCreateImage;
+import static org.bytedeco.javacpp.opencv_core.cvGetSeqElem;
+import static org.bytedeco.javacpp.opencv_core.cvLoad;
+import static org.bytedeco.javacpp.opencv_core.cvSetImageROI;
 import static org.bytedeco.javacpp.opencv_highgui.cvSaveImage;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_INTER_LINEAR;
 import static org.bytedeco.javacpp.opencv_imgproc.cvGetQuadrangleSubPix;
@@ -11,12 +16,57 @@ import static org.bytedeco.javacpp.opencv_imgproc.cvResize;
 import java.util.logging.Logger;
 
 import org.bytedeco.javacpp.opencv_core.CvMat;
+import org.bytedeco.javacpp.opencv_core.CvMemStorage;
+import org.bytedeco.javacpp.opencv_core.CvRect;
+import org.bytedeco.javacpp.opencv_core.CvSeq;
 import org.bytedeco.javacpp.opencv_core.CvSize;
 import org.bytedeco.javacpp.opencv_core.IplImage;
+import org.bytedeco.javacpp.opencv_objdetect.CvHaarClassifierCascade;
 
 public class ImgUtil {
 
 	private static final Logger log = Logger.getLogger(ImgUtil.class.getName());
+
+	public static IplImage[] detectFaceImages(final IplImage greyImage) {
+		log.info("orinigal face picture: " + greyImage);
+
+		IplImage resultImg = standardizeImage(greyImage);
+
+		String faceconfig = ImgUtil.class.getClassLoader()
+				.getResource(Constants.faceDectionConfig).getPath()
+				.substring(1);
+		CvHaarClassifierCascade classifier = new CvHaarClassifierCascade(
+				cvLoad(faceconfig));
+
+		CvMemStorage storage = CvMemStorage.create();
+		CvSeq faces = cvHaarDetectObjects(resultImg, classifier, storage, 1.1,
+				3, 0);
+
+		int total = faces.total();
+		
+		log.info("Founding faces: " + total);
+
+		IplImage[] images = new IplImage[total];
+		for (int i = 0; i < total; i++) {
+			CvRect rect = new CvRect(cvGetSeqElem(faces, i));
+
+			log.info("founding rect: " + rect);
+
+			cvSetImageROI(resultImg, rect);
+			IplImage faceImg = IplImage.create(rect.width(), rect.height(),
+					resultImg.depth(), resultImg.nChannels());
+			cvCopy(resultImg, faceImg);
+
+			IplImage standarizeFaceImg = IplImage.create(160, 160,
+					IPL_DEPTH_8U, 1);
+			cvResize(faceImg, standarizeFaceImg);
+			log.info("get final face image: " + standarizeFaceImg);
+			images[i] = standarizeFaceImg;
+		}
+		
+		storage.release();
+		return images;
+	}
 
 	public static IplImage standardizeImage(final IplImage greyImage) {
 		log.info("image before standardiztion: " + greyImage);
@@ -37,7 +87,8 @@ public class ImgUtil {
 	public static IplImage resize(final IplImage originImg) {
 		log.info("image before resize:" + originImg);
 
-		IplImage img = IplImage.create(Constants.IMG_WDITH, Constants.IMG_HEIGHT, IPL_DEPTH_8U, 1);
+		IplImage img = IplImage.create(Constants.IMG_WDITH,
+				Constants.IMG_HEIGHT, IPL_DEPTH_8U, 1);
 		cvResize(originImg, img, CV_INTER_LINEAR);
 
 		log.info("image after resize:" + img);
@@ -85,7 +136,7 @@ public class ImgUtil {
 		// Transform the image
 		cvGetQuadrangleSubPix(src, imageRotated, M);
 
-		log.info("image after rotation: " + src);
+		log.info("image after rotation: " + imageRotated);
 		return imageRotated;
 	}
 }
