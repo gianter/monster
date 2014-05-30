@@ -18,21 +18,13 @@ import org.bytedeco.javacpp.opencv_core.CvSeq;
 import org.bytedeco.javacpp.opencv_core.IplImage;
 import org.bytedeco.javacpp.opencv_objdetect.CvHaarClassifierCascade;
 import org.junit.Test;
-import org.opencv.core.Core;
-import org.opencv.core.Mat;
-import org.opencv.core.MatOfRect;
-import org.opencv.highgui.Highgui;
-import org.opencv.objdetect.CascadeClassifier;
 
-import com.sungard.hackathon.monster.utils.Constants;
 import com.sungard.hackathon.monster.utils.ImgUtil;
 
 public class PicTest extends TestCase {
 
 	@Test
 	public void test1() {
-
-		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
 		String imagename = "test/C1.jpg";
 		// IplImage greyImage = cvLoadImage(imagename, CV_LOAD_IMAGE_GRAYSCALE);
