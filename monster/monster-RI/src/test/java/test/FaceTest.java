@@ -77,7 +77,7 @@ public class FaceTest extends TestCase {
 		FaceRegService reg = new FaceRegServiceImpl();
 
 		try {
-			String testFile = "test/C1.jpg";
+			String testFile = "test/C3.jpg";
 			FileInputStream fis = new FileInputStream(testFile);
 			byte[] data = IOUtils.toByteArray(fis);
 
