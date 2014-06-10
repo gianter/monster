@@ -6,6 +6,7 @@ import java.util.List;
 public class Person {
     
     private String fullName;
+    private String email;
     private String phoneNumber;
     private FaceImage image1;
     private FaceImage image2;
@@ -59,5 +60,14 @@ public class Person {
     public void setImages(List<FaceImage> images) {
         this.images = images;
     }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+    
     
 }

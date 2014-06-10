@@ -1,87 +1,77 @@
 package com.sungard.hackathon.monster.rest;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 
-import org.apache.commons.io.IOUtils;
-import org.jboss.resteasy.plugins.providers.multipart.InputPart;
-import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
+import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import com.sungard.hackathon.monster.dao.PersonDao;
 import com.sungard.hackathon.monster.pojo.FaceImage;
 import com.sungard.hackathon.monster.pojo.Person;
+import com.sungard.hackathon.monster.service.FaceRegService;
+import com.sungard.hackathon.monster.service.FaceTrainService;
+import com.sungard.hackathon.monster.service.impl.FaceRegServiceImpl;
+import com.sungard.hackathon.monster.service.impl.FaceTrainServiceImpl;
 
+@Path("/mobile")
 public class FaceRestSevice {
-    @Path("/register")
+    
     @POST
-    @Consumes("multipart/form-data")
-    public String register(MultipartFormDataInput input, HttpServletRequest request) {
+    @Path("/register")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response register(@MultipartForm
+    PersonFrom form) {
         Person person = new Person();
-        List<FaceImage> images = new ArrayList<FaceImage>();
-        String fullName = request.getParameter("fullName");
-        String phoneNumber = request.getParameter("phoneNumber");
-        Map<String, List<InputPart>> personForm = input.getFormDataMap();
-        List<InputPart> inputParts = personForm.get("face");
-        for (InputPart inputPart : inputParts) {
-            try {
-                FaceImage image = new FaceImage();
-                MultivaluedMap<String, String> header = inputPart.getHeaders();
-                String fileName = getFileName(header); 
-                //convert the uploaded file to inputstream
-                InputStream inputStream = inputPart.getBody(InputStream.class, null);
-                byte[] bytes = IOUtils.toByteArray(inputStream);
-                image.setData(bytes);
-                image.setSuffix(fileName.substring(fileName.indexOf(".")));
-                images.add(image);
-                //constructs upload file path
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        ApplicationContext ctx = new ClassPathXmlApplicationContext("classpath:applicationContext.xml");
+        PersonDao dao = (PersonDao) ctx.getBean("PersonDao");
+        FaceTrainService trainService = new FaceTrainServiceImpl();
+        String email = form.getEmail();
+        String fullName = form.getFullName();
+        FaceImage image = new FaceImage();
+        
+        //        String fileName = getFileName(input);
+        
+        image.setData(form.getFileInput());
+        image.setSuffix("jpg");
+        person.setImage1(image);
+        
         person.setFullName(fullName);
-        person.setPhoneNumber(phoneNumber);
-        person.setImages(images);
-        return "";
+        person.setEmail(email);
+        person.getImages().add(image);
+        person.setPhoneNumber("123");
+        dao.add(person);
+        trainService.analysisAll(dao.findAll());
+        return Response.ok("ok").build();
     }
     
-    @Path("/login")
     @POST
-    @Consumes("multipart/form-data")
-    public String login(MultipartFormDataInput input, HttpServletRequest request) {
-        Person person = new Person();
-        List<FaceImage> images = new ArrayList<FaceImage>();
-        String fullName = request.getParameter("fullName");
-        String phoneNumber = request.getParameter("phoneNumber");
-        Map<String, List<InputPart>> personForm = input.getFormDataMap();
-        List<InputPart> inputParts = personForm.get("face");
-        for (InputPart inputPart : inputParts) {
-            try {
-                FaceImage image = new FaceImage();
-                MultivaluedMap<String, String> header = inputPart.getHeaders();
-                String fileName = getFileName(header); 
-                //convert the uploaded file to inputstream
-                InputStream inputStream = inputPart.getBody(InputStream.class, null);
-                byte[] bytes = IOUtils.toByteArray(inputStream);
-                image.setData(bytes);
-                image.setSuffix(fileName.substring(fileName.indexOf(".")));
-                images.add(image);
-                //constructs upload file path
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+    @Path("/login")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    public PersonVo login(@MultipartForm
+            PersonFrom form) {
+        ApplicationContext ctx = new ClassPathXmlApplicationContext("classpath:applicationContext.xml");
+        FaceRegService faceService=new FaceRegServiceImpl();
+        PersonDao dao = (PersonDao) ctx.getBean("PersonDao");
+        String name=faceService.recogize(form.getFileInput());
+        List<Person> personList=(List)dao.findByName(name);
+        if(personList!=null && !personList.isEmpty()){
+            PersonVo vo=new PersonVo();
+            vo.setEmail(personList.get(0).getEmail());
+            vo.setName(personList.get(0).getFullName());
+            return vo;
         }
-        person.setFullName(fullName);
-        person.setPhoneNumber(phoneNumber);
-        person.setImages(images);
-        return "";
+        
+        return null;
     }
     
     private String getFileName(MultivaluedMap<String, String> header) {

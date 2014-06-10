@@ -26,6 +26,11 @@ public class FaceTest extends TestCase {
 
 	@Test
 	public void testTrain() {
+	    
+	    System.out.println("123");
+	    
+	    System.out.println("path is: " + System.getProperty("java.library.path")); 
+	    
 		FaceTrainService train = new FaceTrainServiceImpl();
 
 		List<Person> persons = loadData();
