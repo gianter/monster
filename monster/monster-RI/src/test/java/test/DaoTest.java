@@ -36,8 +36,8 @@ public class DaoTest {
     
     private Person createPerson() {
         Person person = new Person();
-        person.setFullName("test");
-        person.setPhoneNumber("111111");
+        person.setName("test");
+        person.setEmail("111111");
         
         FaceImage image1 = new FaceImage();
         image1.setSuffix("jpg");
