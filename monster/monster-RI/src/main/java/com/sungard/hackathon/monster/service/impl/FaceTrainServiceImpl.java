@@ -75,10 +75,12 @@ public class FaceTrainServiceImpl implements FaceTrainService {
     private List<PersonImageEntry> parseAndSave(List<Person> persons) {
         List<PersonImageEntry> pies = new ArrayList<PersonImageEntry>();
         for (Person person : persons) {
-            List<FaceImage> images = person.getImages();
+            List<FaceImage> images = new ArrayList<FaceImage>();
+            images.add(person.getImage1());
+            images.add(person.getImage2());
             int i = 0;
             for (FaceImage img : images) {
-                String orinigalName = FOLDER_TRAIN_IMG + File.separator + person.getFullName() + "_" + i + "." + img.getSuffix();
+                String orinigalName = FOLDER_TRAIN_IMG + File.separator + person.getName() + "_" + i + "." + img.getSuffix();
                 FileUtils.saveImage(orinigalName, img.getData());
                 
                 IplImage greyImage = cvLoadImage(orinigalName, CV_LOAD_IMAGE_GRAYSCALE);
@@ -87,7 +89,7 @@ public class FaceTrainServiceImpl implements FaceTrainService {
                 IplImage[] finalFaceImgs = ImgUtil.detectFaceImages(greyImage);
                 
                 for (int j = 0; j < finalFaceImgs.length; j++) {
-                    String finalImgName = FOLDER_TRAIN_IMG + File.separator + person.getFullName() + "_" + i + "_face_" + j + "." + img.getSuffix();
+                    String finalImgName = FOLDER_TRAIN_IMG + File.separator + person.getName() + "_" + i + "_face_" + j + "." + img.getSuffix();
                     
                     ImgUtil.saveImage(finalFaceImgs[j], finalImgName);
                     
@@ -117,7 +119,7 @@ public class FaceTrainServiceImpl implements FaceTrainService {
             }
             
             trainFaceImgs.add(originalface);
-            fds.getPersonNames().add(pie.getPerson().getFullName());
+            fds.getPersonNames().add(pie.getPerson().getName());
         }
         
         IplImage[] trainingFaceImgArr = trainFaceImgs.toArray(new IplImage[] {});

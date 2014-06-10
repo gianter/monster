@@ -190,7 +190,7 @@ public class FaceRegServiceImpl implements FaceRegService {
 
 		LOGGER.info("pConfidence: " + pConfidence);
 
-		if (new Float(pConfidence).compareTo(new Float(-1)) < 0) {
+		if (new Float(pConfidence).compareTo(new Float(-2)) < 0) {
 			return -1;
 		}
 

@@ -15,10 +15,13 @@
 <section id="page1" data-role="page">
   <header data-role="header"  data-theme="b" ><h1>Welcom</h1></header>
   <div data-role="content" class="content">
-        <form method="post" id="loginform" enctype="multipart/form-data">
-			<img src="images/koala.jpg" style="width: 100%;" />
+        <form method="post" id="loginform" data-ajax="false" enctype="multipart/form-data" action="rest/mobile/login">
+			<input type="file" name="face"/>
+			<input type="text" name="name">
+			<input type="text" name="email">
+			<input type="submit" name="sub" value="submit"/>
             <button data-theme="e" class="ui-btn ui-shadow ui-corner-all ui-btn-icon-left ui-icon-camera">camera</button>
-			<a href="success.html"  data-role="button" id="toregist" data-theme="e">login</a>
+			<a href="rest/mobile/register"  data-role="button" id="toregist" data-theme="e">confirm</a>
         </form>
   </div>
   <footer data-role="footer" data-theme="b"><h1>Sungard Mobile</h1></footer>

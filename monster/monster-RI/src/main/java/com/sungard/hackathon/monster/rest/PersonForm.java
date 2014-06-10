@@ -12,9 +12,7 @@
 package com.sungard.hackathon.monster.rest;
 
 import javax.ws.rs.FormParam;
-import javax.ws.rs.HEAD;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
 
 import org.jboss.resteasy.annotations.providers.multipart.PartType;
 
@@ -27,14 +25,13 @@ import org.jboss.resteasy.annotations.providers.multipart.PartType;
  * @author Jeff.He
  *
  */
-public class PersonFrom {
+public class PersonForm {
     
-    private String fullName;
+    private String name;
     private String email;
     private byte[] fileInput;
-    private MultivaluedMap<String, String> header;
     
-    public PersonFrom() {
+    public PersonForm() {
     }
     
     public byte[] getFileInput() {
@@ -47,13 +44,13 @@ public class PersonFrom {
         this.fileInput = fileInput;
     }
     
-    public String getFullName() {
-        return fullName;
+    public String getName() {
+        return name;
     }
     
     @FormParam("name")
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
+    public void setName(String name) {
+        this.name = name;
     }
     
     public String getEmail() {
@@ -63,15 +60,6 @@ public class PersonFrom {
     @FormParam("email")
     public void setEmail(String email) {
         this.email = email;
-    }
-    
-    public MultivaluedMap<String, String> getHeader() {
-        return header;
-    }
-    
-    @HEAD
-    public void setHeader(MultivaluedMap<String, String> header) {
-        this.header = header;
     }
     
 }

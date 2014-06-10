@@ -27,10 +27,6 @@ public class FaceTest extends TestCase {
 	@Test
 	public void testTrain() {
 	    
-	    System.out.println("123");
-	    
-	    System.out.println("path is: " + System.getProperty("java.library.path")); 
-	    
 		FaceTrainService train = new FaceTrainServiceImpl();
 
 		List<Person> persons = loadData();
@@ -107,7 +103,7 @@ public class FaceTest extends TestCase {
 			for (File cf : childFiles) {
 				Person person = new Person();
 				String name = cf.getName();
-				person.setFullName(name);
+				person.setName(name);
 
 				System.out.println("child name: " + name);
 
@@ -120,7 +116,6 @@ public class FaceTest extends TestCase {
 					FaceImage faceimg = new FaceImage();
 					faceimg.setData(data);
 					faceimg.setSuffix("jpg");
-					person.getImages().add(faceimg);
 				}
 
 				persons.add(person);

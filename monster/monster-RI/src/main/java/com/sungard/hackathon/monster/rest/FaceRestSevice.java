@@ -7,7 +7,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
@@ -29,27 +28,37 @@ public class FaceRestSevice {
     @Path("/register")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response register(@MultipartForm
-    PersonFrom form) {
-        Person person = new Person();
+    PersonForm form) {
         ApplicationContext ctx = new ClassPathXmlApplicationContext("classpath:applicationContext.xml");
         PersonDao dao = (PersonDao) ctx.getBean("PersonDao");
         FaceTrainService trainService = new FaceTrainServiceImpl();
-        String email = form.getEmail();
-        String fullName = form.getFullName();
+        Person person=new Person();
         FaceImage image = new FaceImage();
         
-        //        String fileName = getFileName(input);
+        String email = form.getEmail();
+        String name = form.getName();
         
-        image.setData(form.getFileInput());
-        image.setSuffix("jpg");
-        person.setImage1(image);
+        List<Person> personList=dao.findByNameAndEmail(name, email);
+        if(personList!=null && !personList.isEmpty()){
+        	person=personList.get(0);
+        	image.setData(form.getFileInput());
+            image.setSuffix("jpg");
+            person.setImage2(image);
+            dao.addImage2(person);
+        }else{
+        	image.setData(form.getFileInput());
+            image.setSuffix("jpg");
+            person.setImage1(image);
+            person.setName(name);
+            person.setEmail(email);
+            dao.add(person);
+        }
+       
+        //train
+        if(person.getImage1()!=null && person.getImage2()!=null){
+        	trainService.analysisAll(dao.findAll());
+        }
         
-        person.setFullName(fullName);
-        person.setEmail(email);
-        person.getImages().add(image);
-        person.setPhoneNumber("123");
-        dao.add(person);
-        trainService.analysisAll(dao.findAll());
         return Response.ok("ok").build();
     }
     
@@ -58,7 +67,7 @@ public class FaceRestSevice {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     public PersonVo login(@MultipartForm
-            PersonFrom form) {
+            PersonForm form) {
         ApplicationContext ctx = new ClassPathXmlApplicationContext("classpath:applicationContext.xml");
         FaceRegService faceService=new FaceRegServiceImpl();
         PersonDao dao = (PersonDao) ctx.getBean("PersonDao");
@@ -67,22 +76,10 @@ public class FaceRestSevice {
         if(personList!=null && !personList.isEmpty()){
             PersonVo vo=new PersonVo();
             vo.setEmail(personList.get(0).getEmail());
-            vo.setName(personList.get(0).getFullName());
+            vo.setName(personList.get(0).getName());
             return vo;
         }
         
         return null;
-    }
-    
-    private String getFileName(MultivaluedMap<String, String> header) {
-        String[] contentDisposition = header.getFirst("Content-Disposition").split(";");
-        for (String filename : contentDisposition) {
-            if ((filename.trim().startsWith("filename"))) {
-                String[] name = filename.split("=");
-                String finalFileName = name[1].trim().replaceAll("\"", "");
-                return finalFileName;
-            }
-        }
-        return "";
     }
 }
