@@ -1,0 +1,152 @@
+<!DOCTYPE html> 
+<html>
+<head>
+	<title>Monster</title>
+	<link rel="stylesheet" href="jquery.mobile-1.4.2.min.css" />
+	<script src="jquery-1.9.1.min.js"></script>
+	<script src="jquery.mobile-1.4.2.min.js"></script>
+	<link rel="stylesheet" href="theme-classic.css" />
+	<script type="text/javascript" src="cordova.js"></script>
+</head>
+
+<body>
+
+<div data-role="page" id="page1">
+	<header data-role="header" data-theme="b"><h6>Welcome</h6></header>
+	<div data-role="content" class="content">
+		<img src="images/slk.jpg" style="width: 100%;" />
+		<a href="#page2" data-role="button" data-theme="e">Register</a>
+		<a href="#" data-role="button" data-theme="e" onclick="getPhotoOnLogin()">Login</a>
+	</div>
+	<footer data-role="footer" data-theme="b"><h6>&copy; 2014 SunGard</h6></footer>
+</div>
+
+<div data-role="page" id="page2">
+	<div data-role="header" data-theme="b"><h6>Register</h6></div>
+	<div data-role="main" class="ui-content">
+		name:  <input type="text" id="page2-txt-name"><br>
+		email: <input type="text" id="page2-txt-email"><br>
+		<button data-theme="e" class="ui-btn ui-shadow ui-corner-all ui-btn-icon-left ui-icon-camera" onclick="getPhotoOnReg()">Capture Photo</button>
+	</div>
+	<div data-role="footer" data-theme="b"><h6>&copy; 2014 SunGard</h6></div>
+</div>
+
+<div data-role="page" id="page3">
+	<div data-role="header" data-theme="b"><h6>Register</h6></div>
+	<div data-role="main" class="ui-content">
+		name:  <span id="page3-span-name"></span><br />
+		email: <span id="page3-span-email"></span>
+		<button data-theme="e" class="ui-btn ui-shadow ui-corner-all ui-btn-icon-left ui-icon-camera" onclick="getPhotoOnReg()">Capture Another</button>
+	</div>
+	<div data-role="footer" data-theme="b"><h6>&copy; 2014 SunGard</h6></div>
+</div>
+
+<div data-role="page" id="page4">
+	<div data-role="header" data-theme="b"><h6>Register Successfully!</h6></div>
+	<div data-role="main" class="ui-content">
+		<img style="display:none" id="page4-image" src="" />
+		name:  <span id="page4-span-name"></span><br />
+		email: <span id="page4-span-email"></span>
+		<a href="#page1" data-role="button" data-theme="e">Home</a>
+		<a href="#" data-role="button" data-theme="e" onclick="getPhotoOnLogin()">Login</a>
+	</div>
+	<div data-role="footer" data-theme="b"><h6>&copy; 2014 SunGard</h6></div >
+</div>
+
+<div data-role="page" id="page5">
+	<div data-role="header" data-theme="b"><h6>Login Successfully!</h6></div>
+	<div data-role="main" class="ui-content">
+		<img style="display:none" id="page5-image" src="" />
+		name:  <span id="page5-span-name"></span><br />
+		email: <span id="page5-span-email"></span>
+		<a href="#page1" data-role="button" data-theme="e">Logoff</a>
+	</div>
+	<div data-role="footer" data-theme="b"><h6>&copy; 2014 SunGard</h6></div >
+</div>
+
+<script type="text/javascript">
+function getPhotoOnReg() {
+	navigator.camera.getPicture(onRegSuccess, onFail, { quality: 50,
+		destinationType: navigator.camera.DestinationType.FILE_URI,
+		sourceType: navigator.camera.PictureSourceType.CAMERA,
+		cameraDirection: navigator.camera.Direction.BACK});
+}
+
+function onRegSuccess(imageURI) {
+	var win = function(r) {
+		var json = JSON.parse(r.response);
+		if (json.status == 0) {
+			$.mobile.navigate('#page3');
+			document.getElementById("page3-span-name").innerText = json.name;
+			document.getElementById("page3-span-email").innerText = json.email;
+		} else if(json.status == 1) {
+			$.mobile.navigate('#page4');
+			document.getElementById("page4-span-name").innerText = json.name;
+			document.getElementById("page4-span-email").innerText = json.email;
+			var image = document.getElementById('page4-image');
+			image.style.display = 'block';
+			image.src = "data:image/jpeg;base64," + json.imageString;
+		} else if(json.status == -1) {
+			alert('An error has occurred: Please try again');
+		}
+	}
+
+	var fail = function(error) {
+		alert("An error has occurred: Code = " + error.code);
+	}
+
+	var options = new FileUploadOptions();
+	options.fileKey="file";
+	options.fileName=imageURI.substr(imageURI.lastIndexOf('/')+1);
+	options.mimeType="image/jpeg";
+	options.params = {
+		'name':  document.getElementById("page2-txt-name").value,
+		'email': document.getElementById("page2-txt-email").value
+	};
+
+	var ft = new FileTransfer();
+	ft.upload(imageURI, encodeURI("http://192.168.0.1:8084/face/rest/mobile/register"), win, fail, options);
+}
+
+function getPhotoOnLogin() {
+	navigator.camera.getPicture(onLoginSuccess, onFail, { quality: 50,
+		destinationType: navigator.camera.DestinationType.FILE_URI,
+		sourceType: navigator.camera.PictureSourceType.CAMERA,
+		cameraDirection: navigator.camera.Direction.BACK});
+}
+
+function onLoginSuccess(imageURI) {
+	var win = function(r) {
+		var json = JSON.parse(r.response);
+		if (json.status == 1) {
+			$.mobile.navigate('#page5');
+			document.getElementById("page5-span-name").innerText = json.name;
+			document.getElementById("page5-span-email").innerText = json.email;
+			var image = document.getElementById('page5-image');
+			image.style.display = 'block';
+			image.src = "data:image/jpeg;base64," + json.imageString;
+		} else {
+			alert('Authentication failed, please try again');
+		}
+	}
+
+	var fail = function(error) {
+		alert("An error has occurred: Code = " + error.code);
+	}
+
+	var options = new FileUploadOptions();
+	options.fileKey="file";
+	options.fileName=imageURI.substr(imageURI.lastIndexOf('/')+1);
+	options.mimeType="image/jpeg";
+
+	var ft = new FileTransfer();
+	ft.upload(imageURI, encodeURI("http://192.168.0.1:8084/face/rest/mobile/login"), win, fail, options);
+}
+
+function onFail(message) {
+	alert('An error has occurred: ' + message);
+}
+</script>
+</body>
+
+</html>
