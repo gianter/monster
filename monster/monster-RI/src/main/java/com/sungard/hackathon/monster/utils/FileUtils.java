@@ -1,5 +1,7 @@
 package com.sungard.hackathon.monster.utils;
 
+import static com.sungard.hackathon.monster.utils.Constants.FOLDER_TRAIN_IMG;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -16,11 +18,21 @@ public class FileUtils {
 		File folder = new File(folderString);
 		if (!folder.exists()) {
 			folder.mkdirs();
-		} else {
-			for (File file : folder.listFiles()) {
-				file.delete();
-			}
 		}
+		// else {
+		// for (File file : folder.listFiles()) {
+		// file.delete();
+		// }
+		// }
+	}
+
+	public static String getPersonWorkSpace(String personName) {
+		String spacedest = FOLDER_TRAIN_IMG + File.separator + personName;
+		File spacefolder = new File(spacedest);
+		if (!spacefolder.exists()) {
+			spacefolder.mkdirs();
+		}
+		return spacedest;
 	}
 
 	public static String genTestName(String suffix) {

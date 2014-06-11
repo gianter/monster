@@ -38,7 +38,7 @@ public class PersonForm {
         return fileInput;
     }
     
-    @FormParam("face")
+    @FormParam("file")
     @PartType(MediaType.APPLICATION_OCTET_STREAM)
     public void setFileInput(byte[] fileInput) {
         this.fileInput = fileInput;
