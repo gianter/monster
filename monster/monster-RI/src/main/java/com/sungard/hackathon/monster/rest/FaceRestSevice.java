@@ -2,14 +2,18 @@ package com.sungard.hackathon.monster.rest;
 
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.codec.EncoderException;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
+import org.jboss.resteasy.plugins.providers.html.View;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -65,19 +69,19 @@ public class FaceRestSevice {
     @POST
     @Path("/login")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Produces(MediaType.APPLICATION_JSON)
-    public PersonVo login(@MultipartForm
-            PersonForm form) {
+    @Produces(MediaType.TEXT_HTML)
+    public View login(@MultipartForm
+            PersonForm form,@Context HttpServletRequest request) {
         ApplicationContext ctx = new ClassPathXmlApplicationContext("classpath:applicationContext.xml");
         FaceRegService faceService=new FaceRegServiceImpl();
         PersonDao dao = (PersonDao) ctx.getBean("PersonDao");
         String name=faceService.recogize(form.getFileInput());
         List<Person> personList=(List)dao.findByName(name);
         if(personList!=null && !personList.isEmpty()){
-            PersonVo vo=new PersonVo();
-            vo.setEmail(personList.get(0).getEmail());
-            vo.setName(personList.get(0).getName());
-            return vo;
+        	Person person=personList.get(0);
+        	person.setImage(new org.apache.commons.codec.binary.Base64().encode(personList.get(0).getImage1().getData()));
+        	request.setAttribute("person", person);
+            return new View("/welcome.jsp");
         }
         
         return null;
