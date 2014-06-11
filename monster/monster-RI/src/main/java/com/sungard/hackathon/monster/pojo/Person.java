@@ -1,7 +1,5 @@
 package com.sungard.hackathon.monster.pojo;
 
-import java.util.ArrayList;
-import java.util.List;
 
 public class Person {
 
@@ -10,6 +8,7 @@ public class Person {
 	private FaceImage image1;
 	private FaceImage image2;
 	private FaceImage image3;
+	private byte[] image;
 
 	public String getName() {
 		return name;
@@ -49,6 +48,18 @@ public class Person {
 
 	public void setEmail(String email) {
 		this.email = email;
+	}
+
+	public byte[] getImage() {
+		return image;
+	}
+
+	public void setImage(byte[] image) {
+		this.image = image;
+	}
+
+	public String getByteArrayString() {
+		return new String(this.image);
 	}
 
 }
