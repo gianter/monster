@@ -33,12 +33,14 @@ public class FaceInfoServiceImpl implements FaceInfoService {
 					for (String picname : personFolder.list()) {
 						if (StringUtils.startsWith(picname, "face")) {
 							byte[] img = org.apache.commons.io.FileUtils
-									.readFileToByteArray(new File(picname));
+									.readFileToByteArray(new File(personFolder.getCanonicalPath() + File.separator + picname));
 							FaceImage faceimg = new FaceImage();
 							faceimg.setData(img);
 							
-							person = dao.findByName(personName).get(0);
-							person.setImage1(faceimg);
+							person = dao.findByName(personName);
+							if(person!=null){
+								person.setImage3(faceimg);
+							}
 						}
 					}
 				} catch (Exception e) {
