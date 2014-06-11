@@ -21,7 +21,7 @@ public class DaoTest {
     
     @Test
     public void testAdd() throws SQLException {
-        ApplicationContext ctx = new ClassPathXmlApplicationContext("classpath:applicationContext.xml");
+        ApplicationContext ctx = new ClassPathXmlApplicationContext("classpath:applicationContext_test.xml");
         PersonDao personDao = (PersonDao) ctx.getBean("PersonDao");
         
         Person person = createPerson();
@@ -30,8 +30,11 @@ public class DaoTest {
         List<Person> list1 = personDao.findAll();
         Assert.assertEquals(1, list1.size());
         
-        List<Person> list2 = personDao.findByName("test");
-        Assert.assertEquals(1, list2.size());
+        Person test = personDao.findByName("test");
+        Assert.assertNotNull(test);
+        
+        boolean isExists = personDao.isExists("test");
+        Assert.assertTrue(isExists);
     }
     
     private Person createPerson() {

@@ -10,6 +10,7 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +22,50 @@ import com.sungard.hackathon.monster.pojo.Person;
 public class PersonDaoImpl implements PersonDao {
     @Autowired
     private DataSource dataSource;
+    
+    @Override
+    public boolean isExists(String name) {
+        return isExists(name, null);
+    }
+    
+    public boolean isExists(String name, String email) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("select count(*) from person where NAME=? ");
+        if (StringUtils.isNotBlank(email)) {
+            sb.append(" and EMAIL=? ");
+        }
+        
+        Connection conn = null;
+        PreparedStatement ps = null;
+        int count = 0;
+        try {
+            conn = dataSource.getConnection();
+            ps = conn.prepareStatement(sb.toString());
+            ps.setString(1, name);
+            
+            if (StringUtils.isNotBlank(email)) {
+                ps.setString(2, email);
+            }
+            
+            ResultSet rs = ps.executeQuery();
+            
+            if (rs.next()) {
+                count = rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return count > 0;
+    }
     
     @Override
     public void add(Person person) {
@@ -112,27 +157,25 @@ public class PersonDaoImpl implements PersonDao {
     }
     
     @Override
-    public List<Person> findByName(String name) {
+    public Person findByName(String name) {
         String sql = "select * from person where NAME=?";
         Connection conn = null;
         PreparedStatement ps = null;
-        List<Person> results = new ArrayList<Person>();
+        Person person = null;
         try {
             conn = dataSource.getConnection();
             ps = conn.prepareStatement(sql);
             ps.setString(1, name);
             ResultSet rs = ps.executeQuery();
             
-            while (rs.next()) {
-                Person person = new Person();
+            if (rs.next()) {
+                person = new Person();
                 person.setName(rs.getString("NAME"));
                 person.setEmail(rs.getString("EMAIL"));
                 person.setImage1((FaceImage) rs.getObject("IMAGE1"));
                 person.setImage2((FaceImage) rs.getObject("IMAGE2"));
                 person.setImage3((FaceImage) rs.getObject("IMAGE3"));
-                results.add(person);
             }
-            
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
@@ -145,15 +188,15 @@ public class PersonDaoImpl implements PersonDao {
             }
         }
         
-        return results;
+        return person;
     }
     
     @Override
-    public List<Person> findByNameAndEmail(String name,String email) {
+    public Person findByNameAndEmail(String name,String email) {
         String sql = "select * from person where NAME=? and email=? ";
         Connection conn = null;
         PreparedStatement ps = null;
-        List<Person> results = new ArrayList<Person>();
+        Person person = null;
         try {
             conn = dataSource.getConnection();
             ps = conn.prepareStatement(sql);
@@ -161,16 +204,14 @@ public class PersonDaoImpl implements PersonDao {
             ps.setString(2, email);
             ResultSet rs = ps.executeQuery();
             
-            while (rs.next()) {
-                Person person = new Person();
+            if (rs.next()) {
+                person = new Person();
                 person.setName(rs.getString("NAME"));
                 person.setEmail(rs.getString("EMAIL"));
                 person.setImage1((FaceImage) rs.getObject("IMAGE1"));
                 person.setImage2((FaceImage) rs.getObject("IMAGE2"));
                 person.setImage3((FaceImage) rs.getObject("IMAGE3"));
-                results.add(person);
             }
-            
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
@@ -183,11 +224,10 @@ public class PersonDaoImpl implements PersonDao {
             }
         }
         
-        return results;
+        return person;
     }
     
     public void setDataSource(DataSource dataSource) {
         this.dataSource = dataSource;
     }
-    
 }
