@@ -80,7 +80,8 @@ public class FaceTrainServiceImpl implements FaceTrainService {
             images.add(person.getImage2());
             int i = 0;
             for (FaceImage img : images) {
-                String orinigalName = FOLDER_TRAIN_IMG + File.separator + person.getName() + "_" + i + "." + img.getSuffix();
+//                String orinigalName = FOLDER_TRAIN_IMG + File.separator + person.getName() + "_" + i + "." + img.getSuffix();
+            	String orinigalName =FileUtils.getPersonWorkSpace(person.getName()) + File.separator + "register_" + i + "." + img.getSuffix();
                 FileUtils.saveImage(orinigalName, img.getData());
                 
                 IplImage greyImage = cvLoadImage(orinigalName, CV_LOAD_IMAGE_GRAYSCALE);
@@ -89,7 +90,8 @@ public class FaceTrainServiceImpl implements FaceTrainService {
                 IplImage[] finalFaceImgs = ImgUtil.detectFaceImages(greyImage);
                 
                 for (int j = 0; j < finalFaceImgs.length; j++) {
-                    String finalImgName = FOLDER_TRAIN_IMG + File.separator + person.getName() + "_" + i + "_face_" + j + "." + img.getSuffix();
+//                    String finalImgName = FOLDER_TRAIN_IMG + File.separator + person.getName() + "_" + i + "_face_" + j + "." + img.getSuffix();
+                    String finalImgName = FileUtils.getPersonWorkSpace(person.getName()) + File.separator +  File.separator + "face_" + i + "." + img.getSuffix();
                     
                     ImgUtil.saveImage(finalFaceImgs[j], finalImgName);
                     
@@ -97,7 +99,7 @@ public class FaceTrainServiceImpl implements FaceTrainService {
                     pie.setImageName(finalImgName);
                     pie.setPerson(person);
                     pies.add(pie);
-                }
+                }	
                 
                 i++;
             }
@@ -132,7 +134,7 @@ public class FaceTrainServiceImpl implements FaceTrainService {
             
             int nTrainFaces = trainingFaceImgArr.length;
             
-            // set the number of eigenvalues to use
+            // set the number of eigenvalues
             int nEigens = nTrainFaces - 1;
             CvMat eigenValMat = cvCreateMat(1, nEigens, CV_32FC1);
             

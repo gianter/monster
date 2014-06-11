@@ -6,7 +6,7 @@ public class Constants {
 	public static final int IMG_WDITH = 236;
 
 	public static final int IMG_HEIGHT = 384;
-	
+
 	public static final String faceDectionConfig = "haarcascade_frontalface_alt.xml";
 
 	public static final String FACEDATA_PERSONS = "nPersons";
@@ -25,10 +25,10 @@ public class Constants {
 
 	public static final String FACEDATA_IMG_AVGTRAIN = "avgTrainImg";
 
-	public static final String FACEDATA_EIGENVECT = "eigenVect_";
+	public static final String FACEDATA_EIGENVECT = "eigenVect_"; 
 
-	public static final String FOLDER_TRAIN_IMG = "temp/train";
+	public static final String FOLDER_TRAIN_IMG = "work/temp/train";
 
-	public static final String FOLDER_TEST_IMG = "temp/test";
+	public static final String FOLDER_TEST_IMG = "work/temp/test";
 
 }
