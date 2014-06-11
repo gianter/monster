@@ -85,7 +85,7 @@ public class FaceRestSevice {
         FaceInfoService infoService = new FaceInfoServiceImpl();
         PersonVo vo = new PersonVo();
         String name = faceService.recogize(form.getFileInput());
-        Person person = infoService.getPerson("rachel");
+        Person person = infoService.getPerson(name);
         if (person != null) {
             vo.setName(person.getName());
             vo.setEmail(person.getEmail());
