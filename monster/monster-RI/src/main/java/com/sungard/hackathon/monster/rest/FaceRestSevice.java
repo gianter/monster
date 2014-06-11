@@ -50,11 +50,6 @@ public class FaceRestSevice {
             person.setImage2(image);
             dao.addImage2(person);
             vo.setStatus("1");
-            Person personimage = infoService.getPerson(name);
-            if(personimage!=null){
-                byte[] imageByte = new org.apache.commons.codec.binary.Base64().encode(personimage.getImage3().getData());
-                vo.setImageString(new String(imageByte));
-            }
         } else {
             person = new Person();
             image.setData(form.getFileInput());
@@ -69,8 +64,16 @@ public class FaceRestSevice {
         //train
         if (person.getImage1() != null && person.getImage2() != null) {
             trainService.analysisAll(dao.findAll());
+            Person personimage = infoService.getPerson(name);
+            if(personimage!=null){
+                byte[] imageByte = new org.apache.commons.codec.binary.Base64().encode(personimage.getImage3().getData());
+                vo.setImageString(new String(imageByte));
+            }
         }
+        System.out.println("status:"+vo.getName());
+        System.out.println("status:"+vo.getEmail());
 
+        System.out.println("status:"+vo.getStatus());
         return vo;
     }
 
