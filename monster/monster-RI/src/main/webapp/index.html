@@ -34,8 +34,8 @@
 	<div data-position="fixed" data-tap-toggle="false" data-role="footer" data-tap-toggle="false" data-theme='b'>
 		<div data-role="navbar">
 			<ul>
-				<li><a href="#page2"><i class='blIcon fa fa-camera'></i>register</a></li>
-				<li><a href="#" onclick="getPhotoOnLogin()"><i class='blIcon fa fa-eye'></i>login</a></li>
+				<li><a href="#page2"><i class='blIcon fa fa-camera'></i>Register</a></li>
+				<li><a href="#" onclick="getPhotoOnLogin()"><i class='blIcon fa fa-sign-in'></i>Sign In</a></li>
 			</ul>
 		</div>
 	</div>
@@ -55,15 +55,15 @@
 	<div data-role="content">
 		<ul data-role="listview" data-inset="true">
 			<li data-role="fieldcontain">
-				<label for="page2-txt-name">name:</label>
+				<label for="page2-txt-name">Name:</label>
 				<input type="text" name="page2-txt-name" id="page2-txt-name" value="" data-clear-btn="true" placeholder="">
 			</li>
 			<li data-role="fieldcontain">
-				<label for="page2-txt-email">email:</label>
+				<label for="page2-txt-email">Email:</label>
 				<input type="email" name="page2-txt-email" id="page2-txt-email" value="" data-clear-btn="true" placeholder="">
 			</li>
 			<li>
-				<a href="#" onclick="getPhotoOnReg()"><i class='lIcon fa fa-check'></i>capture photo</a>
+				<a href="#" onclick="getPhotoOnReg()"><i class='lIcon fa fa-camera'></i>Capture Photo</a>
 			</li>
 		</ul>
 	</div>
@@ -74,13 +74,13 @@
 	<div data-role="content">
 		<ul data-role="listview" data-inset="true">
 			<li data-role="fieldcontain">
-				name:  <span id="page3-span-name"></span>
+				Name:  <span id="page3-span-name"></span>
 			</li>
 			<li data-role="fieldcontain">
-				email: <span id="page3-span-email"></span>
+				Email: <span id="page3-span-email"></span>
 			</li>
 			<li>
-				<a href="#" onclick="getPhotoOnReg()"><i class='lIcon fa fa-check'></i>capture another</a>
+				<a href="#" onclick="getPhotoOnReg()"><i class='lIcon fa fa-camera'></i>Capture Again</a>
 			</li>
 		</ul>
 	</div>
@@ -91,15 +91,14 @@
 	<div data-role="content">
 		<ul data-role="listview" data-inset="true">
 			<li data-role="fieldcontain">
-				name:  <span id="page4-span-name"></span><br />
+				Name:  <span id="page4-span-name"></span><br />
 			</li>
 			<li data-role="fieldcontain">
-				email: <span id="page4-span-email"></span>
+				Email: <span id="page4-span-email"></span>
 			</li>
 			<img style="display:none" id="page4-image" src="" />
 			<li>
-				<a href="#page0">Home</a>
-				<a href="#" onclick="getPhotoOnLogin()">Login</a>
+				<a href="#page0"><i class='lIcon fa fa-home'></i>Home</a>
 			</li>
 		</ul>
 	</div>
@@ -111,110 +110,127 @@
 		<ul data-role="listview" data-inset="true">
 			<img style="display:none" id="page5-image" src="" />
 			<li data-role="fieldcontain">
-				name:  <span id="page5-span-name"></span><br />
+				Name:  <span id="page5-span-name"></span><br />
 			</li>
 			<li data-role="fieldcontain">
-				email: <span id="page5-span-email"></span>
-			</li>
-			<li><a href="#page1" onclick="getPersons();"><i class='blIcon fa fa-eye'></i>persons</a></li>
-			<li>
-				<a href="#page0">Log off</a>
+				Email: <span id="page5-span-email"></span>
 			</li>
 		</ul>
+	</div>
+	<div data-position="fixed" data-tap-toggle="false" data-role="footer" data-tap-toggle="false" data-theme='b'>
+		<div data-role="navbar">
+			<ul>
+				<li><a href="#page1" onclick="getPersons();"><i class='blIcon fa fa-list'></i>Persons</a></li>
+				<li><a href="#page0"><i class='blIcon fa fa-sign-out'></i>Sign Out</a></li>
+			</ul>
+		</div>
 	</div>
 </div>
 
 <script type="text/javascript" src="cordova.js"></script>
 <script type="text/javascript">
-function getPhotoOnReg() {
-	navigator.camera.getPicture(onRegSuccess, onFail, { quality: 50,
-		destinationType: navigator.camera.DestinationType.FILE_URI,
-		sourceType: navigator.camera.PictureSourceType.CAMERA,
-		direction: navigator.camera.Direction.FRONT});
-}
-
-function onRegSuccess(imageURI) {
-	var win = function(r) {
-		var json = JSON.parse(r.response);
-		if (json.status == 0) {
-			$.mobile.navigate('#page3');
-			document.getElementById("page3-span-name").innerText = json.name;
-			document.getElementById("page3-span-email").innerText = json.email;
-		} else if(json.status == 1) {
-			$.mobile.navigate('#page4');
-			document.getElementById("page4-span-name").innerText = json.name;
-			document.getElementById("page4-span-email").innerText = json.email;
-			var image = document.getElementById('page4-image');
-			image.style.display = 'block';
-			image.src = "data:image/jpeg;base64," + json.imageString;
-		} else if(json.status == -1) {
-			alert('Registration failed, Please try again');
+	function getPhotoOnReg() {
+		navigator.camera.getPicture(onRegSuccess, onFail, { quality: 50,
+			destinationType: navigator.camera.DestinationType.FILE_URI,
+			sourceType: navigator.camera.PictureSourceType.CAMERA,
+			direction: navigator.camera.Direction.FRONT});
+	}
+	
+	function onRegSuccess(imageURI) {
+		var win = function(r) {
+			var json = JSON.parse(r.response);
+			if (json.status == 0) {
+				$.mobile.navigate('#page3');
+				document.getElementById("page3-span-name").innerText = json.name;
+				document.getElementById("page3-span-email").innerText = json.email;
+			} else if(json.status == 1) {
+				$.mobile.navigate('#page4');
+				document.getElementById("page4-span-name").innerText = json.name;
+				document.getElementById("page4-span-email").innerText = json.email;
+				var image = document.getElementById('page4-image');
+				image.style.display = 'block';
+				image.src = "data:image/jpeg;base64," + json.imageString;
+			} else if(json.status == -1) {
+				alert('Registration failed, Please try again');
+			}
 		}
-	}
-
-	var fail = function(error) {
-		alert("An error has occurred: Code = " + error.code);
-	}
-
-	var options = new FileUploadOptions();
-	options.fileKey="file";
-	options.fileName=imageURI.substr(imageURI.lastIndexOf('/')+1);
-	options.mimeType="image/jpeg";
-	options.params = {
-		'name':  document.getElementById("page2-txt-name").value,
-		'email': document.getElementById("page2-txt-email").value
-	};
-
-	var ft = new FileTransfer();
-	ft.upload(imageURI, encodeURI("http://172.20.10.5:8084/face/rest/mobile/register"), win, fail, options);
-}
-
-function getPhotoOnLogin() {
-	navigator.camera.getPicture(onLoginSuccess, onFail, { quality: 50,
-		destinationType: navigator.camera.DestinationType.FILE_URI,
-		sourceType: navigator.camera.PictureSourceType.CAMERA,
-		direction: navigator.camera.Direction.FRONT});
-}
-
-function onLoginSuccess(imageURI) {
-	var win = function(r) {
-		var json = JSON.parse(r.response);
-		if (json.status == 1) {
-			$.mobile.navigate('#page5');
-			document.getElementById("page5-span-name").innerText = json.name;
-			document.getElementById("page5-span-email").innerText = json.email;
-			var image = document.getElementById('page5-image');
-			image.style.display = 'block';
-			image.src = "data:image/jpeg;base64," + json.imageString;
-		} else {
-			alert('Authentication failed, please try again');
+	
+		var fail = function(error) {
+			alert("An error has occurred: Code = " + error.code);
 		}
+	
+		var options = new FileUploadOptions();
+		options.fileKey="file";
+		options.fileName=imageURI.substr(imageURI.lastIndexOf('/')+1);
+		options.mimeType="image/jpeg";
+		options.params = {
+			'name':  document.getElementById("page2-txt-name").value,
+			'email': document.getElementById("page2-txt-email").value
+		};
+	
+		var ft = new FileTransfer();
+		ft.upload(imageURI, encodeURI("http://172.20.10.5:8084/face/rest/mobile/register"), win, fail, options);
 	}
-
-	var fail = function(error) {
-		alert("An error has occurred: Code = " + error.code);
+	
+	function getPhotoOnLogin() {
+		navigator.camera.getPicture(onLoginSuccess, onFail, { quality: 50,
+			destinationType: navigator.camera.DestinationType.FILE_URI,
+			sourceType: navigator.camera.PictureSourceType.CAMERA,
+			direction: navigator.camera.Direction.FRONT});
 	}
-
-	var options = new FileUploadOptions();
-	options.fileKey="file";
-	options.fileName=imageURI.substr(imageURI.lastIndexOf('/')+1);
-	options.mimeType="image/jpeg";
-
-	var ft = new FileTransfer();
-	ft.upload(imageURI, encodeURI("http://172.20.10.5:8084/face/rest/mobile/login"), win, fail, options);
-}
-
-function onFail(message) {
-	alert('An error has occurred: ' + message);
-}
-
- function getPersons(){
-	 $.get('http://172.20.10.5:8084/face/rest/mobile/persons', function(r) {
+	
+	function onLoginSuccess(imageURI) {
+		var win = function(r) {
+			var json = JSON.parse(r.response);
+			if (json.status == 1) {
+				$.mobile.navigate('#page5');
+				document.getElementById("page5-span-name").innerText = json.name;
+				document.getElementById("page5-span-email").innerText = json.email;
+				var image = document.getElementById('page5-image');
+				image.style.display = 'block';
+				image.src = "data:image/jpeg;base64," + json.imageString;
+			} else {
+				alert('Authentication failed, please try again!');
+			}
+		}
+	
+		var fail = function(error) {
+			alert("An error has occurred: Code = " + error.code);
+		}
+	
+		var options = new FileUploadOptions();
+		options.fileKey="file";
+		options.fileName=imageURI.substr(imageURI.lastIndexOf('/')+1);
+		options.mimeType="image/jpeg";
+	
+		var ft = new FileTransfer();
+		ft.upload(imageURI, encodeURI("http://172.20.10.5:8084/face/rest/mobile/login"), win, fail, options);
+	}
+	
+	function onFail(message) {
+		<!-- alert('An error has occurred: ' + message); -->
+	}
+	
+	function getPersons(){
+		$("#personlist").html("");
+		$.get('http://172.20.10.5:8084/face/rest/mobile/persons', function(r) {
 			for (var data in r) {
-				$("#personlist").append("<li><img src='data:image/jpeg;base64,"+r[data].imageString +"'/><h2>" + r[data].name + "</h2><p>" + r[data].email + "</p></li>") ;
+				$("#personlist").append("<li><img src='data:image/jpeg;base64,"+r[data].imageString +"'/><h2>Name: " + r[data].name + "</h2><h2>Email: " + r[data].email + "</h2></li>") ;
 			}
 		});
- }
+	}
+ 
+	function swipeLeftHandler(event) {
+		getPersons();
+		$.mobile.navigate('#page1');
+	}
+
+	function swipeRightHandler(event) {
+		$.mobile.navigate('#page0');
+	}
+	
+	$("#page5").on("swipeleft", swipeLeftHandler);
+	$("#page5").on("swiperight", swipeRightHandler);
 </script>
 </body>
 
