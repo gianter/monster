@@ -8,6 +8,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 
@@ -44,17 +45,17 @@ public class FaceRestSevice {
         vo.setEmail(email);
         vo.setName(name);
         vo.setStatus("-1");
-        if (email != null && name != null) {
+        if (StringUtils.isNotEmpty(name)) {
             Person person = dao.findByNameAndEmail(name, email);
             if (person != null) {
-                logger.info("second register");
+                logger.info("second register name:"+name);
                 image.setData(form.getFileInput());
                 image.setSuffix("jpg");
                 person.setImage2(image);
                 dao.addImage2(person);
                 vo.setStatus("1");
             } else {
-                logger.info("first register");
+                logger.info("first register name:"+name);
                 person = new Person();
                 image.setData(form.getFileInput());
                 image.setSuffix("jpg");
@@ -104,12 +105,11 @@ public class FaceRestSevice {
             byte[] imageByte = new org.apache.commons.codec.binary.Base64().encode(person.getImage3().getData());
             vo.setImageString(new String(imageByte));
             vo.setStatus("1");
-            request.setAttribute("person", vo);
         }
         logger.info("name:"+vo.getName());
         logger.info("email:"+vo.getEmail());
         logger.info("status:"+vo.getStatus());
-        logger.info("login end");
+        logger.info("login success");
         return vo;
     }
 

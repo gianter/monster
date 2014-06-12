@@ -11,6 +11,7 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +21,7 @@ import com.sungard.hackathon.monster.pojo.Person;
 
 @Component("PersonDao")
 public class PersonDaoImpl implements PersonDao {
+    Logger logger = Logger.getLogger(this.getClass());
     @Autowired
     private DataSource dataSource;
     
@@ -29,6 +31,9 @@ public class PersonDaoImpl implements PersonDao {
     }
     
     public boolean isExists(String name, String email) {
+        logger.info("start isExist method");
+        logger.info("name:"+name);
+        logger.info("email"+email);
         StringBuilder sb = new StringBuilder();
         sb.append("select count(*) from person where NAME=? ");
         if (StringUtils.isNotBlank(email)) {
@@ -63,12 +68,15 @@ public class PersonDaoImpl implements PersonDao {
                 }
             }
         }
-        
+        logger.info("end isExist method");
         return count > 0;
     }
     
     @Override
     public void add(Person person) {
+        logger.info("start add method");
+        logger.info("name:"+person.getName());
+        logger.info("email"+person.getEmail());
         String sql = "insert into person(NAME,EMAIL,IMAGE1,IMAGE2,IMAGE3) values(?,?,?,?,?)";
         Connection conn = null;
         PreparedStatement ps = null;
@@ -93,10 +101,14 @@ public class PersonDaoImpl implements PersonDao {
                 }
             }
         }
+        logger.info("end add method");
     }
     
     @Override
     public void addImage2(Person person) {
+        logger.info("start addImage2 method");
+        logger.info("name:"+person.getName());
+        logger.info("email"+person.getEmail());
         String sql = "update person set IMAGE2=? where name=? and email=? ";
         Connection conn = null;
         PreparedStatement ps = null;
@@ -119,10 +131,12 @@ public class PersonDaoImpl implements PersonDao {
                 }
             }
         }
+        logger.info("end addImage2 method");
     }
     
     @Override
     public List<Person> findAll() {
+        logger.info("start find all method");
         String sql = "select * from person";
         Connection conn = null;
         Statement st = null;
@@ -152,12 +166,14 @@ public class PersonDaoImpl implements PersonDao {
                 }
             }
         }
-        
+        logger.info("end find all method");
         return results;
     }
     
     @Override
     public Person findByName(String name) {
+        logger.info("start findByName method");
+        logger.info("name:"+name);
         String sql = "select * from person where NAME=?";
         Connection conn = null;
         PreparedStatement ps = null;
@@ -187,12 +203,16 @@ public class PersonDaoImpl implements PersonDao {
                 }
             }
         }
+        logger.info("end findByName method");
         
         return person;
     }
     
     @Override
     public Person findByNameAndEmail(String name,String email) {
+        logger.info("start findByNameAndEmail method");
+        logger.info("name:"+name);
+        logger.info("email"+email);
         String sql = "select * from person where NAME=? and email=? ";
         Connection conn = null;
         PreparedStatement ps = null;
@@ -223,7 +243,7 @@ public class PersonDaoImpl implements PersonDao {
                 }
             }
         }
-        
+        logger.info("end findByNameAndEmail method");
         return person;
     }
     

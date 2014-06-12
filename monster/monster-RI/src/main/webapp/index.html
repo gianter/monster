@@ -87,7 +87,7 @@ function onRegSuccess(imageURI) {
 			image.style.display = 'block';
 			image.src = "data:image/jpeg;base64," + json.imageString;
 		} else if(json.status == -1) {
-			alert('An error has occurred: Please try again');
+			alert('Register failed: Please try again');
 		}
 	}
 
