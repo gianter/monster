@@ -116,7 +116,7 @@
 			<li data-role="fieldcontain">
 				email: <span id="page5-span-email"></span>
 			</li>
-			<li><a href="#page1"><i class='blIcon fa fa-eye'></i>persons</a></li>
+			<li><a href="#page1" onclick="getPersons();"><i class='blIcon fa fa-eye'></i>persons</a></li>
 			<li>
 				<a href="#page0">Log off</a>
 			</li>
@@ -166,7 +166,7 @@ function onRegSuccess(imageURI) {
 	};
 
 	var ft = new FileTransfer();
-	ft.upload(imageURI, encodeURI("http://10.253.125.88:8084/face/rest/mobile/register"), win, fail, options);
+	ft.upload(imageURI, encodeURI("http://172.20.10.5:8084/face/rest/mobile/register"), win, fail, options);
 }
 
 function getPhotoOnLogin() {
@@ -201,20 +201,20 @@ function onLoginSuccess(imageURI) {
 	options.mimeType="image/jpeg";
 
 	var ft = new FileTransfer();
-	ft.upload(imageURI, encodeURI("http://10.253.125.88:8084/face/rest/mobile/login"), win, fail, options);
+	ft.upload(imageURI, encodeURI("http://172.20.10.5:8084/face/rest/mobile/login"), win, fail, options);
 }
 
 function onFail(message) {
 	alert('An error has occurred: ' + message);
 }
 
-$(document).on("pageinit", "#page1", function(){
-	$.get('http://10.253.125.88:8084/face/rest/mobile/persons', function(r) {
-		for (var data in r) {
-			$("#personlist").append("<li><img src='data:image/jpeg;base64,"+r[data].imageString +"'/><h2>" + r[data].name + "</h2><p>" + r[data].email + "</p></li>") ;
-		}
-	});
-});
+ function getPersons(){
+	 $.get('http://172.20.10.5:8084/face/rest/mobile/persons', function(r) {
+			for (var data in r) {
+				$("#personlist").append("<li><img src='data:image/jpeg;base64,"+r[data].imageString +"'/><h2>" + r[data].name + "</h2><p>" + r[data].email + "</p></li>") ;
+			}
+		});
+ }
 </script>
 </body>
 
