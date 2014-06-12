@@ -14,41 +14,40 @@ import com.sungard.hackathon.monster.utils.FileUtils;
 
 public class FaceInfoServiceImpl implements FaceInfoService {
 
-	private static final Logger log = Logger
-			.getLogger(FaceInfoServiceImpl.class.getName());
+    private static final Logger log = Logger.getLogger(FaceInfoServiceImpl.class.getName());
 
-	@Override
-	public Person getPerson(String personName) {
+    @Override
+    public Person getPerson(String personName) {
+        log.info("start getPerson");
+        Person person = null;
+        if (!StringUtils.isEmpty(personName)) {
+            PersonDao dao = (PersonDao) ContextUtils.getContext().getBean("PersonDao");
+            log.info("personName:" +personName);
+            File personFolder = new File(FileUtils.getPersonWorkSpace(personName));
 
-		Person person = null;
-		if (!StringUtils.isEmpty(personName)) {
-			PersonDao dao = (PersonDao) ContextUtils.getContext().getBean(
-					"PersonDao");
+            if (personFolder.exists()) {
+                log.info("personFolder:" +personFolder);
+                try {
+                    for (String picname : personFolder.list()) {
+                        if (StringUtils.startsWith(picname, "face")) {
+                            byte[] img = org.apache.commons.io.FileUtils.readFileToByteArray(new File(personFolder.getCanonicalPath()
+                                    + File.separator + picname));
+                            FaceImage faceimg = new FaceImage();
+                            faceimg.setData(img);
 
-			File personFolder = new File(
-					FileUtils.getPersonWorkSpace(personName));
-			
-			if (personFolder.exists()) {
-				try {
-					for (String picname : personFolder.list()) {
-						if (StringUtils.startsWith(picname, "face")) {
-							byte[] img = org.apache.commons.io.FileUtils
-									.readFileToByteArray(new File(personFolder.getCanonicalPath() + File.separator + picname));
-							FaceImage faceimg = new FaceImage();
-							faceimg.setData(img);
-							
-							person = dao.findByName(personName);
-							if(person!=null){
-								person.setImage3(faceimg);
-							}
-						}
-					}
-				} catch (Exception e) {
-					log.info("read file exception");
-				}
-			}
-		}
-		return person;
-	}
+                            person = dao.findByName(personName);
+                            if (person != null) {
+                                person.setImage3(faceimg);
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    log.info("read file exception");
+                }
+            }
+        }
+        log.info("end getPerson");
+        return person;
+    }
 
 }

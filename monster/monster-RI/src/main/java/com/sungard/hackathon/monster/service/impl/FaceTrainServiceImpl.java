@@ -1,6 +1,5 @@
 package com.sungard.hackathon.monster.service.impl;
 
-import static com.sungard.hackathon.monster.utils.Constants.FOLDER_TRAIN_IMG;
 import static org.bytedeco.javacpp.helper.opencv_legacy.cvCalcEigenObjects;
 import static org.bytedeco.javacpp.helper.opencv_legacy.cvEigenDecomposite;
 import static org.bytedeco.javacpp.opencv_core.CV_32FC1;
@@ -54,25 +53,28 @@ import com.sungard.hackathon.monster.utils.FileUtils;
 import com.sungard.hackathon.monster.utils.ImgUtil;
 
 public class FaceTrainServiceImpl implements FaceTrainService {
-    
+
     private static final Logger LOGGER = Logger.getLogger(FaceTrainServiceImpl.class.getName());
-    
+
     public void analysisAll(List<Person> persons) {
+        LOGGER.info("start analysisAll");
         FileUtils.initDirs();
-        
+
         if (persons != null && persons.size() != 0) {
             // parse and save image
             List<PersonImageEntry> pies = parseAndSave(persons);
-            
+
             // perform PCA
             FaceDataSet fds = doPCA(pies);
-            
+
             // Store face data
             storeTrainingData(fds);
         }
+        LOGGER.info("end analysisAll");
     }
-    
+
     private List<PersonImageEntry> parseAndSave(List<Person> persons) {
+        LOGGER.info("start parseAndSave");
         List<PersonImageEntry> pies = new ArrayList<PersonImageEntry>();
         for (Person person : persons) {
             List<FaceImage> images = new ArrayList<FaceImage>();
@@ -80,95 +82,98 @@ public class FaceTrainServiceImpl implements FaceTrainService {
             images.add(person.getImage2());
             int i = 0;
             for (FaceImage img : images) {
-//                String orinigalName = FOLDER_TRAIN_IMG + File.separator + person.getName() + "_" + i + "." + img.getSuffix();
-            	String orinigalName =FileUtils.getPersonWorkSpace(person.getName()) + File.separator + "register_" + i + "." + img.getSuffix();
+                //                String orinigalName = FOLDER_TRAIN_IMG + File.separator + person.getName() + "_" + i + "." + img.getSuffix();
+                String orinigalName = FileUtils.getPersonWorkSpace(person.getName()) + File.separator + "register_" + i + "." + img.getSuffix();
                 FileUtils.saveImage(orinigalName, img.getData());
-                
+
                 IplImage greyImage = cvLoadImage(orinigalName, CV_LOAD_IMAGE_GRAYSCALE);
-                
+
                 // IplImage finalImg = ImgUtil.standardizeImage(greyImg);
                 IplImage[] finalFaceImgs = ImgUtil.detectFaceImages(greyImage);
-                
+
                 for (int j = 0; j < finalFaceImgs.length; j++) {
-//                    String finalImgName = FOLDER_TRAIN_IMG + File.separator + person.getName() + "_" + i + "_face_" + j + "." + img.getSuffix();
-                    String finalImgName = FileUtils.getPersonWorkSpace(person.getName()) + File.separator +  File.separator + "face_" + i + "." + img.getSuffix();
-                    
+                    //                    String finalImgName = FOLDER_TRAIN_IMG + File.separator + person.getName() + "_" + i + "_face_" + j + "." + img.getSuffix();
+                    String finalImgName = FileUtils.getPersonWorkSpace(person.getName()) + File.separator + File.separator + "face_" + i + "."
+                            + img.getSuffix();
+
                     ImgUtil.saveImage(finalFaceImgs[j], finalImgName);
-                    
+
                     PersonImageEntry pie = new PersonImageEntry();
                     pie.setImageName(finalImgName);
                     pie.setPerson(person);
                     pies.add(pie);
-                }	
-                
+                }
+
                 i++;
             }
         }
-        
+        LOGGER.info("end parseAndSave");
+
         return pies;
     }
-    
+
     private FaceDataSet doPCA(List<PersonImageEntry> pies) {
+        LOGGER.info("start doPCA");
         FaceDataSet fds = new FaceDataSet();
-        
+
         // Load all of training face image
         List<IplImage> trainFaceImgs = new ArrayList<IplImage>();
-        
+
         for (PersonImageEntry pie : pies) {
             IplImage originalface = cvLoadImage(pie.getImageName(), CV_LOAD_IMAGE_GRAYSCALE);
             if (originalface == null) {
                 throw new RuntimeException("Can't load image from " + pie.getImageName());
             }
-            
+
             trainFaceImgs.add(originalface);
             fds.getPersonNames().add(pie.getPerson().getName());
         }
-        
+
         IplImage[] trainingFaceImgArr = trainFaceImgs.toArray(new IplImage[] {});
-        
+
         if (trainingFaceImgArr != null && trainingFaceImgArr.length != 0) {
             CvSize faceImgSize = new CvSize();
-            
+
             faceImgSize.width(trainingFaceImgArr[0].width());
             faceImgSize.height(trainingFaceImgArr[0].height());
-            
+
             int nTrainFaces = trainingFaceImgArr.length;
-            
+
             // set the number of eigenvalues
             int nEigens = nTrainFaces - 1;
             CvMat eigenValMat = cvCreateMat(1, nEigens, CV_32FC1);
-            
+
             LOGGER.info("allocating images for principal component analysis, using " + nEigens + " eigenvalue");
-            
+
             IplImage[] eigenVectArr = new IplImage[nEigens];
-            
+
             for (int i = 0; i < nEigens; i++) {
                 eigenVectArr[i] = cvCreateImage(faceImgSize, IPL_DEPTH_32F, 1);
             }
-            
+
             // allocate the averaged image
             IplImage pAvgTrainImg = cvCreateImage(faceImgSize, IPL_DEPTH_32F, 1);
-            
+
             // set the PCA termination criterion
             CvTermCriteria calcLimit = cvTermCriteria(CV_TERMCRIT_ITER, nEigens, 1);
-            
+
             cvCalcEigenObjects(nTrainFaces, trainingFaceImgArr, eigenVectArr, CV_EIGOBJ_NO_CALLBACK, 0, null, calcLimit, pAvgTrainImg,
                     eigenValMat.data_fl());
-            
+
             cvNormalize(eigenValMat, eigenValMat, 1, 0, CV_L1, null);
-            
+
             // Keep the data
             CvMat personNumTruthMat = cvCreateMat(1, // rows
                     nTrainFaces, // cols
                     CV_32SC1); // type, 32-bit unsigned, one channel
-            
+
             for (int j1 = 0; j1 < nTrainFaces; j1++) {
                 personNumTruthMat.put(0, j1, 0);
             }
-            
+
             // project the training images onto the PCA subspace
             CvMat projectedTrainFaceMat = cvCreateMat(nTrainFaces, nEigens, CV_32FC1);
-            
+
             // initialize the training face matrix
             for (int i1 = 0; i1 < nTrainFaces; i1++) {
                 for (int j1 = 0; j1 < nEigens; j1++) {
@@ -176,16 +181,16 @@ public class FaceTrainServiceImpl implements FaceTrainService {
                 }
                 personNumTruthMat.put(0, i1, i1 + 1);
             }
-            
+
             final FloatPointer floatPointer = new FloatPointer(nEigens);
             for (int i = 0; i < nTrainFaces; i++) {
                 cvEigenDecomposite(trainingFaceImgArr[i], nEigens, eigenVectArr, 0, null, pAvgTrainImg, floatPointer);
-                
+
                 for (int j1 = 0; j1 < nEigens; j1++) {
                     projectedTrainFaceMat.put(i, j1, floatPointer.get(j1));
                 }
             }
-            
+
             fds.setnTrainFaces(nTrainFaces);
             fds.setnPersons(nTrainFaces);
             fds.setEigenValMat(eigenValMat);
@@ -195,12 +200,13 @@ public class FaceTrainServiceImpl implements FaceTrainService {
             fds.setProjectedTrainFaceMat(projectedTrainFaceMat);
             fds.setPersonNumTruthMat(personNumTruthMat);
         }
-        
+        LOGGER.info("end doPCA");
+
         return fds;
     }
-    
+
     public void storeTrainingData(FaceDataSet fds) {
-        
+
         LOGGER.info("writing facedata.xml");
         CvFileStorage fileStorage;
         int i;
@@ -209,12 +215,12 @@ public class FaceTrainServiceImpl implements FaceTrainService {
                 null, // memstorage
                 CV_STORAGE_WRITE, // flags
                 null); // encoding
-        
+
         // Store the person names. Added by Shervin.
         cvWriteInt(fileStorage, // fs
                 "nPersons", // name
                 fds.getnPersons()); // value
-        
+
         for (i = 0; i < fds.getnPersons(); i++) {
             String varname = "personName_" + (i + 1);
             cvWriteString(fileStorage, // fs
@@ -222,42 +228,42 @@ public class FaceTrainServiceImpl implements FaceTrainService {
                     fds.getPersonNames().get(i), // string
                     0); // quote
         }
-        
+
         // store all the data
         cvWriteInt(fileStorage, // fs
                 "nEigens", // name
                 fds.getnEigens()); // value
-        
+
         cvWriteInt(fileStorage, // fs
                 "nTrainFaces", // name
                 fds.getnTrainFaces()); // value
-        
+
         cvWrite(fileStorage, // fs
                 "trainPersonNumMat", // name
                 fds.getPersonNumTruthMat()); // value
-        
+
         cvWrite(fileStorage, // fs
                 "eigenValMat", // name
                 fds.getEigenValMat()); // value
-        
+
         cvWrite(fileStorage, // fs
                 "projectedTrainFaceMat", // name
                 fds.getProjectedTrainFaceMat());
-        
+
         cvWrite(fileStorage, // fs
                 "avgTrainImg", // name
                 fds.getpAvgTrainImg()); // value
-        
+
         for (i = 0; i < fds.getnEigens(); i++) {
             String varname = "eigenVect_" + i;
             cvWrite(fileStorage, // fs
                     varname, // name
                     fds.getEigenVectArr()[i]); // value
         }
-        
+
         // release the file-storage interface
         cvReleaseFileStorage(fileStorage);
-        
+
         // // create a file-storage interface
         // CvFileStorage fileStorage = cvOpenFileStorage(FACEDATAFILE, null,
         // CV_STORAGE_WRITE, null);
@@ -301,55 +307,55 @@ public class FaceTrainServiceImpl implements FaceTrainService {
         //
         // // release the file-storage interface
         // cvReleaseFileStorage(fileStorage);
-        
+
         // store the face image
         storeEigenfaceImages(fds);
     }
-    
+
     private void storeEigenfaceImages(FaceDataSet tc) {
         // Store the average image to a file
         LOGGER.info("Saving the image of the average face as 'out_averageImage.bmp'");
         cvSaveImage("out_averageImage.bmp", tc.getpAvgTrainImg());
-        
+
         // Create a large image made of many eigenface images.
         // Must also convert each eigenface image to a normal 8-bit UCHAR image
         // instead of a 32-bit float image.
         int nEigens = tc.getnEigens();
         LOGGER.info("Saving the " + tc.getnEigens() + " eigenvector images as 'out_eigenfaces.bmp'");
-        
+
         if (nEigens > 0) {
             int COLUMNS = 8;
             int nCols = Math.min(nEigens, COLUMNS);
             int nRows = 1 + (nEigens / COLUMNS); // Put the rest on new rows.
-            
+
             int w = tc.getEigenVectArr()[0].width();
             int h = tc.getEigenVectArr()[0].height();
-            
+
             CvSize size = cvSize(nCols * w, nRows * h);
-            
+
             final IplImage bigImg = cvCreateImage(size, IPL_DEPTH_8U, 1);
-            
+
             for (int i = 0; i < nEigens; i++) {
                 IplImage byteImg = converToUcharImage(tc.getEigenVectArr()[i]);
                 // Paste it into the correct position.
                 int x = w * (i % COLUMNS);
                 int y = h * (i / COLUMNS);
-                
+
                 CvRect ROI = cvRect(x, y, w, h);
-                
+
                 cvSetImageROI(bigImg, ROI);
-                
+
                 cvCopy(byteImg, bigImg, null);
                 cvResetImageROI(bigImg);
                 cvReleaseImage(byteImg);
             }
-            
+
             cvSaveImage("out_eigenfaces.bmp", bigImg);
-            
+
             cvReleaseImage(bigImg);
         }
     }
-    
+
     private IplImage converToUcharImage(IplImage srcImg) {
         if ((srcImg != null) && (srcImg.width() > 0 && srcImg.height() > 0)) {
             // Spread the 32bit floating point pixels to fit within 8bit pixel

@@ -10,194 +10,181 @@ import static org.bytedeco.javacpp.opencv_core.cvReleaseFileStorage;
 import static org.bytedeco.javacpp.opencv_highgui.CV_LOAD_IMAGE_GRAYSCALE;
 import static org.bytedeco.javacpp.opencv_highgui.cvLoadImage;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Logger;
 
 import org.bytedeco.javacpp.FloatPointer;
 import org.bytedeco.javacpp.Pointer;
-import org.bytedeco.javacpp.PointerPointer;
 import org.bytedeco.javacpp.opencv_core.CvFileStorage;
 import org.bytedeco.javacpp.opencv_core.CvMat;
 import org.bytedeco.javacpp.opencv_core.IplImage;
 
 import com.sungard.hackathon.monster.pojo.FaceDataSet;
 import com.sungard.hackathon.monster.service.FaceRegService;
-import com.sungard.hackathon.monster.utils.Constants;
 import com.sungard.hackathon.monster.utils.FileUtils;
 import com.sungard.hackathon.monster.utils.ImgUtil;
 
 public class FaceRegServiceImpl implements FaceRegService {
 
-	private static final Logger LOGGER = Logger
-			.getLogger(FaceRegServiceImpl.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(FaceRegServiceImpl.class.getName());
 
-	public String recogize(byte[] data) {
+    public String recogize(byte[] data) {
+        LOGGER.info("start recogize");
+        FileUtils.initDirs();
+        String personName = "Error! Not Found";
+        if (data != null) {
+            String suffix = "jpg";
+            String testImgName = FileUtils.genTestName(suffix);
+            FileUtils.saveImage(testImgName, data);
 
-		FileUtils.initDirs();
-		String personName = "Error! Not Found";
-		if (data != null) {
-			String suffix = "jpg";
-			String testImgName = FileUtils.genTestName(suffix);
-			FileUtils.saveImage(testImgName, data);
+            FaceDataSet fds = loadFaceDB();
 
-			FaceDataSet fds = loadFaceDB();
+            IplImage orinigalImg = cvLoadImage(testImgName, CV_LOAD_IMAGE_GRAYSCALE);
 
-			IplImage orinigalImg = cvLoadImage(testImgName,
-					CV_LOAD_IMAGE_GRAYSCALE);
+            IplImage[] faceImages = ImgUtil.detectFaceImages(orinigalImg);
 
-			IplImage[] faceImages = ImgUtil.detectFaceImages(orinigalImg);
+            float pConfidence = 0.0f;
+            int nEigens = fds.getnEigens();
+            IplImage pAvgTrainImg = fds.getpAvgTrainImg();
+            IplImage[] eigenVectArr = fds.getEigenVectArr();
 
-			float pConfidence = 0.0f;
-			int nEigens = fds.getnEigens();
-			IplImage pAvgTrainImg = fds.getpAvgTrainImg();
-			IplImage[] eigenVectArr = fds.getEigenVectArr();
+            // final FloatPointer floatPointer = new FloatPointer(nEigens);
+            float[] floatPointer = new float[nEigens];
 
-			// final FloatPointer floatPointer = new FloatPointer(nEigens);
-			float[] floatPointer = new float[nEigens];
+            cvEigenDecomposite(faceImages[0], nEigens, eigenVectArr, 0, null, pAvgTrainImg, floatPointer);
 
-			cvEigenDecomposite(faceImages[0], nEigens, eigenVectArr, 0, null,
-					pAvgTrainImg, floatPointer);
+            int iNearest = findNearestNeighbor(fds, floatPointer, new FloatPointer(pConfidence));
 
-			int iNearest = findNearestNeighbor(fds, floatPointer,
-					new FloatPointer(pConfidence));
+            if (iNearest > -1) {
+                personName = fds.getPersonNames().get(iNearest);
+                LOGGER.info("Person matched! Found " + personName + " !");
+            } else {
+                LOGGER.info("Could not found match person: ");
+            }
+        }
+        LOGGER.info("end recogize");
+        return personName;
+    }
 
-			if (iNearest > -1) {
-				personName = fds.getPersonNames().get(iNearest);
-				LOGGER.info("Person matched! Found " + personName + " !");
-			} else {
-				LOGGER.info("Could not found match person: ");
-			}
-		}
+    private FaceDataSet loadFaceDB() {
+        LOGGER.info("start loadFaceDB");
+        FaceDataSet fds = new FaceDataSet();
 
-		return personName;
-	}
+        LOGGER.info("loading training data");
+        CvMat pTrainPersonNumMat = null; // the person numbers during training
+        CvFileStorage fileStorage;
+        int i;
 
-	private FaceDataSet loadFaceDB() {
-		FaceDataSet fds = new FaceDataSet();
+        // create a file-storage interface
+        fileStorage = cvOpenFileStorage("facedata.xml", null, CV_STORAGE_READ, null);
+        if (fileStorage == null) {
+            LOGGER.severe("Can't open training database file 'facedata.xml'.");
+            return null;
+        }
 
-		LOGGER.info("loading training data");
-		CvMat pTrainPersonNumMat = null; // the person numbers during training
-		CvFileStorage fileStorage;
-		int i;
+        // Load the person names.
+        fds.getPersonNames().clear(); // Make sure it starts as empty.
+        int nPersons = cvReadIntByName(fileStorage, null, "nPersons", 0);
+        if (nPersons == 0) {
+            LOGGER.severe("No people found in the training database 'facedata.xml'.");
+            return null;
+        } else {
+            LOGGER.info(nPersons + " persons read from the training database");
+        }
 
-		// create a file-storage interface
-		fileStorage = cvOpenFileStorage("facedata.xml", null, CV_STORAGE_READ,
-				null);
-		if (fileStorage == null) {
-			LOGGER.severe("Can't open training database file 'facedata.xml'.");
-			return null;
-		}
+        // Load each person's name.
+        for (i = 0; i < nPersons; i++) {
+            String sPersonName;
+            String varname = "personName_" + (i + 1);
+            sPersonName = cvReadStringByName(fileStorage, // fs
+                    null, varname, "");
+            fds.getPersonNames().add(sPersonName);
+        }
+        LOGGER.info("person names: " + fds.getPersonNames());
 
-		// Load the person names.
-		fds.getPersonNames().clear(); // Make sure it starts as empty.
-		int nPersons = cvReadIntByName(fileStorage, null, "nPersons", 0);
-		if (nPersons == 0) {
-			LOGGER.severe("No people found in the training database 'facedata.xml'.");
-			return null;
-		} else {
-			LOGGER.info(nPersons + " persons read from the training database");
-		}
+        // Load the data
+        int nEigens = cvReadIntByName(fileStorage, null, "nEigens", 0);
+        int nTrainFaces = cvReadIntByName(fileStorage, null, "nTrainFaces", 0);
+        Pointer pointer = cvReadByName(fileStorage, null, "trainPersonNumMat");
+        pTrainPersonNumMat = new CvMat(pointer);
 
-		// Load each person's name.
-		for (i = 0; i < nPersons; i++) {
-			String sPersonName;
-			String varname = "personName_" + (i + 1);
-			sPersonName = cvReadStringByName(fileStorage, // fs
-					null, varname, "");
-			fds.getPersonNames().add(sPersonName);
-		}
-		LOGGER.info("person names: " + fds.getPersonNames());
+        pointer = cvReadByName(fileStorage, null, "eigenValMat");
+        CvMat eigenValMat = new CvMat(pointer);
 
-		// Load the data
-		int nEigens = cvReadIntByName(fileStorage, null, "nEigens", 0);
-		int nTrainFaces = cvReadIntByName(fileStorage, null, "nTrainFaces", 0);
-		Pointer pointer = cvReadByName(fileStorage, null, "trainPersonNumMat");
-		pTrainPersonNumMat = new CvMat(pointer);
+        pointer = cvReadByName(fileStorage, null, "projectedTrainFaceMat");
+        CvMat projectedTrainFaceMat = new CvMat(pointer);
 
-		pointer = cvReadByName(fileStorage, null, "eigenValMat");
-		CvMat eigenValMat = new CvMat(pointer);
+        pointer = cvReadByName(fileStorage, null, "avgTrainImg");
+        IplImage pAvgTrainImg = new IplImage(pointer);
 
-		pointer = cvReadByName(fileStorage, null, "projectedTrainFaceMat");
-		CvMat projectedTrainFaceMat = new CvMat(pointer);
+        IplImage[] eigenVectArr = new IplImage[nTrainFaces];
+        for (i = 0; i <= nEigens; i++) {
+            String varname = "eigenVect_" + i;
+            pointer = cvReadByName(fileStorage, null, varname);
+            eigenVectArr[i] = new IplImage(pointer);
+        }
 
-		pointer = cvReadByName(fileStorage, null, "avgTrainImg");
-		IplImage pAvgTrainImg = new IplImage(pointer);
+        // release the file-storage interface
+        cvReleaseFileStorage(fileStorage);
 
-		IplImage[] eigenVectArr = new IplImage[nTrainFaces];
-		for (i = 0; i <= nEigens; i++) {
-			String varname = "eigenVect_" + i;
-			pointer = cvReadByName(fileStorage, null, varname);
-			eigenVectArr[i] = new IplImage(pointer);
-		}
+        LOGGER.info("Training data loaded (" + nTrainFaces + " training images of " + nPersons + " people)");
+        final StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("People: ");
 
-		// release the file-storage interface
-		cvReleaseFileStorage(fileStorage);
+        fds.setnEigens(nEigens);
+        fds.setnTrainFaces(nTrainFaces);
+        fds.setnPersons(nPersons);
+        fds.setpAvgTrainImg(pAvgTrainImg);
+        fds.setEigenVectArr(eigenVectArr);
+        fds.setEigenValMat(eigenValMat);
+        fds.setProjectedTrainFaceMat(projectedTrainFaceMat);
+        fds.setPersonNumTruthMat(pTrainPersonNumMat);
+        LOGGER.info("end loadFaceDB");
+        return fds;
+    }
 
-		LOGGER.info("Training data loaded (" + nTrainFaces
-				+ " training images of " + nPersons + " people)");
-		final StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("People: ");
+    private int findNearestNeighbor(FaceDataSet fds, float[] projectedTestFace, FloatPointer pConfidencePointer) {
+        LOGGER.info("start findNearestNeighbor");
+        double leastDistSq = Double.MAX_VALUE;
+        int iNearest = 0;
 
-		fds.setnEigens(nEigens);
-		fds.setnTrainFaces(nTrainFaces);
-		fds.setnPersons(nPersons);
-		fds.setpAvgTrainImg(pAvgTrainImg);
-		fds.setEigenVectArr(eigenVectArr);
-		fds.setEigenValMat(eigenValMat);
-		fds.setProjectedTrainFaceMat(projectedTrainFaceMat);
-		fds.setPersonNumTruthMat(pTrainPersonNumMat);
+        for (int iTrain = 0; iTrain < fds.getnTrainFaces(); iTrain++) {
+            double distSq = 0;
 
-		return fds;
-	}
+            for (int i = 0; i < fds.getnEigens(); i++) {
+                float projectedTrainFaceDistance = (float) fds.getProjectedTrainFaceMat().get(iTrain, i);
 
-	private int findNearestNeighbor(FaceDataSet fds, float[] projectedTestFace,
-			FloatPointer pConfidencePointer) {
-		double leastDistSq = Double.MAX_VALUE;
-		int iNearest = 0;
+                float d_i = projectedTestFace[i] - projectedTrainFaceDistance;
 
-		for (int iTrain = 0; iTrain < fds.getnTrainFaces(); iTrain++) {
-			double distSq = 0;
+                distSq += d_i * d_i;
+            }
 
-			for (int i = 0; i < fds.getnEigens(); i++) {
-				float projectedTrainFaceDistance = (float) fds
-						.getProjectedTrainFaceMat().get(iTrain, i);
+            LOGGER.info("face " + (iTrain) + " has squared distance: " + distSq);
+            if (distSq < leastDistSq) {
+                leastDistSq = distSq;
+                iNearest = iTrain;
+                LOGGER.info("training face " + (iTrain) + " is the new best match, least squared distance: " + leastDistSq);
+            }
 
-				float d_i = projectedTestFace[i] - projectedTrainFaceDistance;
+        }
 
-				distSq += d_i * d_i;
-			}
+        // Return the confidence level based on the Euclidean distance,
+        // so that similar images should give a confidence between 0.5 to 1.0,
+        // and very different images should give a confidence between 0.0 to
+        // 0.5.
+        LOGGER.info("leastDistSq: " + leastDistSq);
 
-			LOGGER.info("face " + (iTrain) + " has squared distance: " + distSq);
-			if (distSq < leastDistSq) {
-				leastDistSq = distSq;
-				iNearest = iTrain;
-				LOGGER.info("training face " + (iTrain)
-						+ " is the new best match, least squared distance: "
-						+ leastDistSq);
-			}
+        float pConfidence = (float) (1.0f - Math.sqrt(leastDistSq / (float) (fds.getnTrainFaces() * fds.getnEigens())) / 255.0f);
 
-		}
+        LOGGER.info("pConfidence: " + pConfidence);
 
-		// Return the confidence level based on the Euclidean distance,
-		// so that similar images should give a confidence between 0.5 to 1.0,
-		// and very different images should give a confidence between 0.0 to
-		// 0.5.
-		LOGGER.info("leastDistSq: " + leastDistSq);
+        if (new Float(pConfidence).compareTo(new Float(-2)) < 0) {
+            return -1;
+        }
 
-		float pConfidence = (float) (1.0f - Math.sqrt(leastDistSq
-				/ (float) (fds.getnTrainFaces() * fds.getnEigens())) / 255.0f);
+        // pConfidencePointer.put(pConfidence);
 
-		LOGGER.info("pConfidence: " + pConfidence);
-
-		if (new Float(pConfidence).compareTo(new Float(-2)) < 0) {
-			return -1;
-		}
-
-		// pConfidencePointer.put(pConfidence);
-
-		LOGGER.info("training face " + (iNearest)
-				+ " is the final best match, confidence " + pConfidence);
-		return iNearest;
-	}
+        LOGGER.info("training face " + (iNearest) + " is the final best match, confidence " + pConfidence);
+        LOGGER.info("end findNearestNeighbor");
+        return iNearest;
+    }
 }
