@@ -30,7 +30,7 @@ public class FileUtils {
 		}
 		File testFolder = new File(Constants.FOLDER_TEST_IMG);
 		if (testFolder.exists()) {
-			for (File file : trainFolder.listFiles()) {
+			for (File file : testFolder.listFiles()) {
 				file.delete();
 			}
 		}

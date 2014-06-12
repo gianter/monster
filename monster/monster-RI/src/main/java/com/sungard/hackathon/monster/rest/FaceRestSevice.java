@@ -1,5 +1,7 @@
 package com.sungard.hackathon.monster.rest;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -93,9 +95,16 @@ public class FaceRestSevice {
     PersonForm form, @Context
     HttpServletRequest request) {
         logger.info("start login");
+        PersonDao dao = (PersonDao) ContextUtils.getContext().getBean("PersonDao");
+        PersonVo vo = new PersonVo();
+        List<Person> personList=dao.findAll();
+        if(personList==null || personList.isEmpty()){
+            logger.info("there is no person in database");
+            vo.setStatus("-1");
+            return vo;
+        }
         FaceRegService faceService = new FaceRegServiceImpl();
         FaceInfoService infoService = new FaceInfoServiceImpl();
-        PersonVo vo = new PersonVo();
         String name = faceService.recogize(form.getFileInput());
         Person person = infoService.getPerson(name);
         if (person != null) {
