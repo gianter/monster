@@ -1,75 +1,136 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html>
 <head>
 	<title>Monster</title>
-	<link rel="stylesheet" href="jquery.mobile-1.4.2.min.css" />
-	<script src="jquery-1.9.1.min.js"></script>
-	<script src="jquery.mobile-1.4.2.min.js"></script>
-	<link rel="stylesheet" href="theme-classic.css" />
-	<script type="text/javascript" src="cordova.js"></script>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+	<!-- FontAwesome - http://fortawesome.github.io/Font-Awesome/ -->
+    <link rel="stylesheet" href="css/font-awesome.min.css" />
+
+	<!-- jQueryMobileCSS - original without styling -->
+	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.css" />
+
+	<!-- nativeDroid core CSS -->
+    <link rel="stylesheet" href="css/jquerymobile.nativedroid.css" />
+
+	<!-- nativeDroid: Light/Dark -->
+	<link rel="stylesheet" href="css/jquerymobile.nativedroid.dark.css" id='jQMnDTheme' />
+
+	<!-- nativeDroid: Color Schemes -->
+	<link rel="stylesheet" href="css/jquerymobile.nativedroid.color.green.css" id='jQMnDColor' />
+
+	<!-- jQuery / jQueryMobile Scripts -->
+	<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+	<script src="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.js"></script>
 </head>
 
 <body>
 
-<div data-role="page" id="page1">
-	<header data-role="header" data-theme="b"><h6>Welcome</h6></header>
-	<div data-role="content" class="content">
-		<img src="images/face.jpg" style="width: 100%;" />
-		<a href="#page2" data-role="button" data-theme="e">Register</a>
-		<a href="#" data-role="button" data-theme="e" onclick="getPhotoOnLogin()">Login</a>
+<div data-role="page" data-theme="b" id="page0">
+	<div data-role="header" data-position="fixed" data-tap-toggle="false" data-theme="b"><h1>Welcome</h1></div>
+	<div data-role="content">
+		<img src="images/slk.jpg" style="width: 100%;height: auto;" />
 	</div>
-	<footer data-role="footer" data-theme="b"><h6>&copy; 2014 SunGard</h6></footer>
+	<div data-position="fixed" data-tap-toggle="false" data-role="footer" data-tap-toggle="false" data-theme='b'>
+		<div data-role="navbar">
+			<ul>
+				<li><a href="#page2"><i class='blIcon fa fa-camera'></i>register</a></li>
+				<li><a href="#" onclick="getPhotoOnLogin()"><i class='blIcon fa fa-eye'></i>login</a></li>
+			</ul>
+		</div>
+	</div>
 </div>
 
-<div data-role="page" id="page2">
-	<div data-role="header" data-theme="b"><h6>Register</h6></div>
-	<div data-role="main" class="ui-content">
-		name:  <input type="text" id="page2-txt-name"><br>
-		email: <input type="text" id="page2-txt-email"><br>
-		<button data-theme="e" class="ui-btn ui-shadow ui-corner-all ui-btn-icon-left ui-icon-camera" onclick="getPhotoOnReg()">Capture Photo</button>
+<div data-role="page" data-theme="b" id="page1">
+	<div data-role="header" data-position="fixed" data-tap-toggle="false" data-theme="b"><h1>Persons</h1></div>
+	<div data-role="content">   
+		<ul data-role="listview" data-inset="false" data-icon="false" data-divider-theme="b" id="personlist">
+			
+		</ul>
 	</div>
-	<div data-role="footer" data-theme="b"><h6>&copy; 2014 SunGard</h6></div>
 </div>
 
-<div data-role="page" id="page3">
-	<div data-role="header" data-theme="b"><h6>Register</h6></div>
-	<div data-role="main" class="ui-content">
-		name:  <span id="page3-span-name"></span><br />
-		email: <span id="page3-span-email"></span>
-		<button data-theme="e" class="ui-btn ui-shadow ui-corner-all ui-btn-icon-left ui-icon-camera" onclick="getPhotoOnReg()">Capture Another</button>
+<div data-role="page" data-theme="b" id="page2">
+	<div data-role="header" data-position="fixed" data-tap-toggle="false" data-theme="b"><h1>Register</h1></div>
+	<div data-role="content">
+		<ul data-role="listview" data-inset="true">
+			<li data-role="fieldcontain">
+				<label for="page2-txt-name">name:</label>
+				<input type="text" name="page2-txt-name" id="page2-txt-name" value="" data-clear-btn="true" placeholder="">
+			</li>
+			<li data-role="fieldcontain">
+				<label for="page2-txt-email">email:</label>
+				<input type="email" name="page2-txt-email" id="page2-txt-email" value="" data-clear-btn="true" placeholder="">
+			</li>
+			<li>
+				<a href="#" onclick="getPhotoOnReg()"><i class='lIcon fa fa-check'></i>capture photo</a>
+			</li>
+		</ul>
 	</div>
-	<div data-role="footer" data-theme="b"><h6>&copy; 2014 SunGard</h6></div>
 </div>
 
-<div data-role="page" id="page4">
-	<div data-role="header" data-theme="b"><h6>Register Successfully!</h6></div>
-	<div data-role="main" class="ui-content">
-		<img style="display:none" id="page4-image" src="" />
-		name:  <span id="page4-span-name"></span><br />
-		email: <span id="page4-span-email"></span>
-		<a href="#page1" data-role="button" data-theme="e">Home</a>
-		<a href="#" data-role="button" data-theme="e" class="ui-btn ui-shadow ui-corner-all ui-btn-icon-left ui-icon-camera" onclick="getPhotoOnLogin()">Login</a>
+<div data-role="page" data-theme="b" id="page3">
+	<div data-role="header" data-position="fixed" data-tap-toggle="false" data-theme="b"><h1>Register</h1></div>
+	<div data-role="content">
+		<ul data-role="listview" data-inset="true">
+			<li data-role="fieldcontain">
+				name:  <span id="page3-span-name"></span>
+			</li>
+			<li data-role="fieldcontain">
+				email: <span id="page3-span-email"></span>
+			</li>
+			<li>
+				<a href="#" onclick="getPhotoOnReg()"><i class='lIcon fa fa-check'></i>capture another</a>
+			</li>
+		</ul>
 	</div>
-	<div data-role="footer" data-theme="b"><h6>&copy; 2014 SunGard</h6></div >
 </div>
 
-<div data-role="page" id="page5">
-	<div data-role="header" data-theme="b"><h6>Login Successfully!</h6></div>
-	<div data-role="main" class="ui-content">
-		<img style="display:none" id="page5-image" src="" />
-		name:  <span id="page5-span-name"></span><br />
-		email: <span id="page5-span-email"></span>
-		<a href="#page1" data-role="button" data-theme="e">Logoff</a>
+<div data-role="page" data-theme="b" id="page4">
+	<div data-role="header" data-position="fixed" data-tap-toggle="false" data-theme="b"><h1>Register Finished!</h1></div>
+	<div data-role="content">
+		<ul data-role="listview" data-inset="true">
+			<li data-role="fieldcontain">
+				name:  <span id="page4-span-name"></span><br />
+			</li>
+			<li data-role="fieldcontain">
+				email: <span id="page4-span-email"></span>
+			</li>
+			<img style="display:none" id="page4-image" src="" />
+			<li>
+				<a href="#page0">Home</a>
+				<a href="#" onclick="getPhotoOnLogin()">Login</a>
+			</li>
+		</ul>
 	</div>
-	<div data-role="footer" data-theme="b"><h6>&copy; 2014 SunGard</h6></div >
 </div>
 
+<div data-role="page" data-theme="b" id="page5">
+	<div data-role="header" data-position="fixed" data-tap-toggle="false" data-theme="b"><h1>Login Successfully!</h1></div>
+	<div data-role="content">
+		<ul data-role="listview" data-inset="true">
+			<img style="display:none" id="page5-image" src="" />
+			<li data-role="fieldcontain">
+				name:  <span id="page5-span-name"></span><br />
+			</li>
+			<li data-role="fieldcontain">
+				email: <span id="page5-span-email"></span>
+			</li>
+			<li><a href="#page1"><i class='blIcon fa fa-eye'></i>persons</a></li>
+			<li>
+				<a href="#page0">Log off</a>
+			</li>
+		</ul>
+	</div>
+</div>
+
+<script type="text/javascript" src="cordova.js"></script>
 <script type="text/javascript">
 function getPhotoOnReg() {
 	navigator.camera.getPicture(onRegSuccess, onFail, { quality: 50,
 		destinationType: navigator.camera.DestinationType.FILE_URI,
 		sourceType: navigator.camera.PictureSourceType.CAMERA,
-		cameraDirection: navigator.camera.Direction.BACK});
+		direction: navigator.camera.Direction.FRONT});
 }
 
 function onRegSuccess(imageURI) {
@@ -87,7 +148,7 @@ function onRegSuccess(imageURI) {
 			image.style.display = 'block';
 			image.src = "data:image/jpeg;base64," + json.imageString;
 		} else if(json.status == -1) {
-			alert('Register failed: Please try again');
+			alert('Registration failed, Please try again');
 		}
 	}
 
@@ -105,14 +166,14 @@ function onRegSuccess(imageURI) {
 	};
 
 	var ft = new FileTransfer();
-	ft.upload(imageURI, encodeURI("http://192.168.0.1:8084/face/rest/mobile/register"), win, fail, options);
+	ft.upload(imageURI, encodeURI("http://10.253.125.88:8084/face/rest/mobile/register"), win, fail, options);
 }
 
 function getPhotoOnLogin() {
 	navigator.camera.getPicture(onLoginSuccess, onFail, { quality: 50,
 		destinationType: navigator.camera.DestinationType.FILE_URI,
 		sourceType: navigator.camera.PictureSourceType.CAMERA,
-		cameraDirection: navigator.camera.Direction.BACK});
+		direction: navigator.camera.Direction.FRONT});
 }
 
 function onLoginSuccess(imageURI) {
@@ -140,12 +201,20 @@ function onLoginSuccess(imageURI) {
 	options.mimeType="image/jpeg";
 
 	var ft = new FileTransfer();
-	ft.upload(imageURI, encodeURI("http://192.168.0.1:8084/face/rest/mobile/login"), win, fail, options);
+	ft.upload(imageURI, encodeURI("http://10.253.125.88:8084/face/rest/mobile/login"), win, fail, options);
 }
 
 function onFail(message) {
 	alert('An error has occurred: ' + message);
 }
+
+$(document).on("pageinit", "#page1", function(){
+	$.get('http://10.253.125.88:8084/face/rest/mobile/persons', function(r) {
+		for (var data in r) {
+			$("#personlist").append("<li><img src='data:image/jpeg;base64,"+r[data].imageString +"'/><h2>" + r[data].name + "</h2><p>" + r[data].email + "</p></li>") ;
+		}
+	});
+});
 </script>
 </body>
 

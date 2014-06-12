@@ -1,9 +1,11 @@
 package com.sungard.hackathon.monster.rest;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -50,14 +52,14 @@ public class FaceRestSevice {
         if (StringUtils.isNotEmpty(name)) {
             Person person = dao.findByNameAndEmail(name, email);
             if (person != null) {
-                logger.info("second register name:"+name);
+                logger.info("second register name:" + name);
                 image.setData(form.getFileInput());
                 image.setSuffix("jpg");
                 person.setImage2(image);
                 dao.addImage2(person);
                 vo.setStatus("1");
             } else {
-                logger.info("first register name:"+name);
+                logger.info("first register name:" + name);
                 person = new Person();
                 image.setData(form.getFileInput());
                 image.setSuffix("jpg");
@@ -79,11 +81,11 @@ public class FaceRestSevice {
                 }
             }
         }
-        logger.info("name:"+vo.getName());
-        logger.info("email:"+vo.getEmail());
-        logger.info("status:"+vo.getStatus());
+        logger.info("name:" + vo.getName());
+        logger.info("email:" + vo.getEmail());
+        logger.info("status:" + vo.getStatus());
         logger.info("register end");
-        
+
         return vo;
     }
 
@@ -97,8 +99,8 @@ public class FaceRestSevice {
         logger.info("start login");
         PersonDao dao = (PersonDao) ContextUtils.getContext().getBean("PersonDao");
         PersonVo vo = new PersonVo();
-        List<Person> personList=dao.findAll();
-        if(personList==null || personList.isEmpty()){
+        List<Person> personList = dao.findAll();
+        if (personList == null || personList.isEmpty()) {
             logger.info("there is no person in database");
             vo.setStatus("-1");
             return vo;
@@ -108,18 +110,45 @@ public class FaceRestSevice {
         String name = faceService.recogize(form.getFileInput());
         Person person = infoService.getPerson(name);
         if (person != null) {
-            logger.info("find person name:"+person.getName());
+            logger.info("find person name:" + person.getName());
             vo.setName(person.getName());
             vo.setEmail(person.getEmail());
             byte[] imageByte = new org.apache.commons.codec.binary.Base64().encode(person.getImage3().getData());
             vo.setImageString(new String(imageByte));
             vo.setStatus("1");
         }
-        logger.info("name:"+vo.getName());
-        logger.info("email:"+vo.getEmail());
-        logger.info("status:"+vo.getStatus());
+        logger.info("name:" + vo.getName());
+        logger.info("email:" + vo.getEmail());
+        logger.info("status:" + vo.getStatus());
         logger.info("login success");
         return vo;
+    }
+
+    @GET
+    @Path("/persons")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<PersonVo> findAll(@Context
+    HttpServletRequest request) {
+        logger.info("start findAll");
+        FaceInfoService infoService = new FaceInfoServiceImpl();
+        List<PersonVo> persons = new ArrayList<PersonVo>();
+        PersonDao dao = (PersonDao) ContextUtils.getContext().getBean("PersonDao");
+        List<Person> personList = dao.findAll();
+        for (Person person : personList) {
+            PersonVo vo = new PersonVo();
+            if (person.getImage1() != null && person.getImage2() != null) {
+                Person personimage = infoService.getPerson(person.getName());
+                if (personimage != null) {
+                    byte[] imageByte = new org.apache.commons.codec.binary.Base64().encode(personimage.getImage3().getData());
+                    vo.setImageString(new String(imageByte));
+                    vo.setName(person.getName());
+                    vo.setEmail(person.getEmail());
+                    persons.add(vo);
+                }
+            }
+        }
+        logger.info("login findAll");
+        return persons;
     }
 
 }
