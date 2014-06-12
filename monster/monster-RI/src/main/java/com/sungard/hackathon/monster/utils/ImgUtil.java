@@ -43,7 +43,7 @@ public class ImgUtil {
 				3, 0);
 
 		int total = faces.total();
-		
+
 		log.info("Founding faces: " + total);
 
 		IplImage[] images = new IplImage[total];
@@ -57,13 +57,14 @@ public class ImgUtil {
 					resultImg.depth(), resultImg.nChannels());
 			cvCopy(resultImg, faceImg);
 
-			IplImage standarizeFaceImg = IplImage.create(160, 160,
+			IplImage standarizeFaceImg = IplImage.create(
+					Constants.FACE_IMG_WIDTH, Constants.FACE_IMG_HEIGHT,
 					IPL_DEPTH_8U, 1);
 			cvResize(faceImg, standarizeFaceImg);
 			log.info("get final face image: " + standarizeFaceImg);
 			images[i] = standarizeFaceImg;
 		}
-		
+
 		storage.release();
 		return images;
 	}
