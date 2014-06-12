@@ -25,15 +25,17 @@ import com.sungard.hackathon.monster.utils.ImgUtil;
 
 public class FaceRegServiceImpl implements FaceRegService {
 
-    private static final Logger LOGGER = Logger.getLogger(FaceRegServiceImpl.class.getName());
+    private final Logger LOGGER = Logger.getLogger(FaceRegServiceImpl.class.getName());
 
     public String recogize(byte[] data) {
         LOGGER.info("start recogize");
-        FileUtils.initDirs();
         String personName = "Error! Not Found";
+        
         if (data != null) {
             String suffix = "jpg";
+            
             String testImgName = FileUtils.genTestName(suffix);
+            LOGGER.info("saving match pic to: " + testImgName);
             FileUtils.saveImage(testImgName, data);
 
             FaceDataSet fds = loadFaceDB();
@@ -50,6 +52,7 @@ public class FaceRegServiceImpl implements FaceRegService {
             // final FloatPointer floatPointer = new FloatPointer(nEigens);
             float[] floatPointer = new float[nEigens];
 
+            LOGGER.info("start cvEigenDecomposite");
             cvEigenDecomposite(faceImages[0], nEigens, eigenVectArr, 0, null, pAvgTrainImg, floatPointer);
 
             int iNearest = findNearestNeighbor(fds, floatPointer, new FloatPointer(pConfidence));

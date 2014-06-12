@@ -58,7 +58,6 @@ public class FaceTrainServiceImpl implements FaceTrainService {
 
     public void analysisAll(List<Person> persons) {
         LOGGER.info("start analysisAll");
-        FileUtils.initDirs();
 
         if (persons != null && persons.size() != 0) {
             // parse and save image
@@ -82,7 +81,6 @@ public class FaceTrainServiceImpl implements FaceTrainService {
             images.add(person.getImage2());
             int i = 0;
             for (FaceImage img : images) {
-                //                String orinigalName = FOLDER_TRAIN_IMG + File.separator + person.getName() + "_" + i + "." + img.getSuffix();
                 String orinigalName = FileUtils.getPersonWorkSpace(person.getName()) + File.separator + "register_" + i + "." + img.getSuffix();
                 FileUtils.saveImage(orinigalName, img.getData());
 
@@ -92,7 +90,6 @@ public class FaceTrainServiceImpl implements FaceTrainService {
                 IplImage[] finalFaceImgs = ImgUtil.detectFaceImages(greyImage);
 
                 for (int j = 0; j < finalFaceImgs.length; j++) {
-                    //                    String finalImgName = FOLDER_TRAIN_IMG + File.separator + person.getName() + "_" + i + "_face_" + j + "." + img.getSuffix();
                     String finalImgName = FileUtils.getPersonWorkSpace(person.getName()) + File.separator + File.separator + "face_" + i + "."
                             + img.getSuffix();
 
@@ -263,50 +260,6 @@ public class FaceTrainServiceImpl implements FaceTrainService {
 
         // release the file-storage interface
         cvReleaseFileStorage(fileStorage);
-
-        // // create a file-storage interface
-        // CvFileStorage fileStorage = cvOpenFileStorage(FACEDATAFILE, null,
-        // CV_STORAGE_WRITE, null);
-        //
-        // // Store the person names.
-        // cvWriteInt(fileStorage, Constants.FACEDATA_PERSONS, fds
-        // .getPersonNames().size());
-        // for (int i = 0; i < fds.getPersonNames().size(); i++) {
-        // String varname = Constants.FACEDATA_PERSON_NAME + (i + 1);
-        // cvWriteString(fileStorage, varname, fds.getPersonNames().get(i), 0);
-        // }
-        //
-        // // Store nEigens
-        // cvWriteInt(fileStorage, Constants.FACEDATA_EIGENS,
-        // fds.getPersonNames()
-        // .size() - 1);
-        //
-        // // Store train face number
-        // cvWriteInt(fileStorage, Constants.FACEDATA_TRAINFACES, fds
-        // .getPersonNames().size());
-        //
-        // cvWrite(fileStorage, "trainPersonNumMat",
-        // fds.getPersonNumTruthMat());
-        //
-        // // Store eigenValMat
-        // cvWrite(fileStorage, Constants.FACEDATA_MAT_EIGENVAL,
-        // fds.getEigenValMat());
-        //
-        // // Store eprojectedTrainFaceMat
-        // cvWrite(fileStorage, Constants.FACEDATA_MAT_PROJECTEDTRAINFACE,
-        // fds.getProjectedTrainFaceMat());
-        //
-        // // Store avgTrainImg
-        // cvWrite(fileStorage, Constants.FACEDATA_IMG_AVGTRAIN,
-        // fds.getpAvgTrainImg());
-        // for (int i = 0; i < fds.getEigenVectArr().length; i++) {
-        // IplImage image = fds.getEigenVectArr()[i];
-        // String varname = Constants.FACEDATA_EIGENVECT + (i + 1);
-        // cvWrite(fileStorage, varname, image);
-        // }
-        //
-        // // release the file-storage interface
-        // cvReleaseFileStorage(fileStorage);
 
         // store the face image
         storeEigenfaceImages(fds);

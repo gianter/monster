@@ -58,13 +58,12 @@ public class PersonDaoImpl implements PersonDao {
                 count = rs.getInt(1);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+        	logger.error("isExists failed by:", e);
         } finally {
             if (conn != null) {
                 try {
                     conn.close();
                 } catch (SQLException e) {
-                    e.printStackTrace();
                 }
             }
         }
@@ -91,13 +90,12 @@ public class PersonDaoImpl implements PersonDao {
             ps.executeUpdate();
             ps.close();
         } catch (SQLException e) {
-            e.printStackTrace();
+        	logger.error("add person failed by:", e);
         } finally {
             if (conn != null) {
                 try {
                     conn.close();
                 } catch (SQLException e) {
-                    e.printStackTrace();
                 }
             }
         }
@@ -121,13 +119,12 @@ public class PersonDaoImpl implements PersonDao {
             ps.executeUpdate();
             ps.close();
         } catch (SQLException e) {
-            e.printStackTrace();
+        	logger.error("add image failed by:", e);
         } finally {
             if (conn != null) {
                 try {
                     conn.close();
                 } catch (SQLException e) {
-                    e.printStackTrace();
                 }
             }
         }
@@ -156,13 +153,12 @@ public class PersonDaoImpl implements PersonDao {
                 results.add(person);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+        	logger.error("findAll failed by:", e);
         } finally {
             if (conn != null) {
                 try {
                     conn.close();
                 } catch (SQLException e) {
-                    e.printStackTrace();
                 }
             }
         }
@@ -193,13 +189,12 @@ public class PersonDaoImpl implements PersonDao {
                 person.setImage3((FaceImage) rs.getObject("IMAGE3"));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+        	logger.error("findByName failed by:", e);
         } finally {
             if (conn != null) {
                 try {
                     conn.close();
                 } catch (SQLException e) {
-                    e.printStackTrace();
                 }
             }
         }
@@ -233,13 +228,12 @@ public class PersonDaoImpl implements PersonDao {
                 person.setImage3((FaceImage) rs.getObject("IMAGE3"));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+        	logger.error("findByNameAndEmail failed by:", e);
         } finally {
             if (conn != null) {
                 try {
                     conn.close();
                 } catch (SQLException e) {
-                    e.printStackTrace();
                 }
             }
         }

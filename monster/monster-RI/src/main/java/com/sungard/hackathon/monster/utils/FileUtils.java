@@ -19,11 +19,22 @@ public class FileUtils {
 		if (!folder.exists()) {
 			folder.mkdirs();
 		}
-		// else {
-		// for (File file : folder.listFiles()) {
-		// file.delete();
-		// }
-		// }
+	}
+
+	public static void cleanWorkspace() {
+		File trainFolder = new File(Constants.FOLDER_TRAIN_IMG);
+		if (trainFolder.exists()) {
+			for (File file : trainFolder.listFiles()) {
+				file.delete();
+			}
+		}
+		File testFolder = new File(Constants.FOLDER_TEST_IMG);
+		if (testFolder.exists()) {
+			for (File file : trainFolder.listFiles()) {
+				file.delete();
+			}
+		}
+
 	}
 
 	public static String getPersonWorkSpace(String personName) {
