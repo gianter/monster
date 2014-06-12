@@ -25,7 +25,7 @@ public class FaceDataSet {
 	/** the number of eigenvalues */
 	int nEigens = 0;
 
-	/** eigenvectors */
+	/** eigen vectors */
 	IplImage[] eigenVectArr;
 	/** eigenvalues */
 	CvMat eigenValMat;
