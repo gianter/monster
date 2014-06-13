@@ -26,7 +26,7 @@ We used the following technologies and architecture:
 * Memory Database
 * Machine Learning for Face detection and recognition
 
-###Design purpose	
+###Design purpose
 
 To introduce a new architecture and development process for Enterprise Mobile Application, we can keep all of resource in remote server so that the application upgrade automatically.
 
@@ -39,11 +39,7 @@ To introduce a new architecture and development process for Enterprise Mobile Ap
 
 ###Highlights
 * It is a machine learning application
-* It can support multiple mobile platform	
+* It can support multiple mobile platform
 * It can support different screen-resolution automatically
 * It can demonstrate how to upgrade the system without IT help
 
-
-
-		 
-	  
