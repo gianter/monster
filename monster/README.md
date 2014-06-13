@@ -28,7 +28,7 @@ We used the following technologies and architecture:
 
 ###Design purpose	
 
-introduce a new architecture and development process for Enterprise Mobile Application, <br/>keeping all of resource in remote server so that the application upgrade automatically.
+To introduce a new architecture and development process for Enterprise Mobile Application, we can keep all of resource in remote server so that the application upgrade automatically.
 
  
 ###Open source or proprietary software
