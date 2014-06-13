@@ -21,34 +21,27 @@ Our application have 2 modules
 
 We used the following technologies and architecture:
 
-	* HTML5	
-	* REST Service	
-	* Memory Database
-	* Machine Learning for Face detection and recognition
+* HTML5	
+* REST Service	
+* Memory Database
+* Machine Learning for Face detection and recognition
 
-Our code is designed to
----------------------------
-	
+###Design purpose	
 	introduce a new architecture and development process for Enterprise Mobile Application, 
 keeping all of resource in remote server so that the application upgrade automatically.
 
-It was written by
-----------------------
-	 Java and HTML5
  
-It uses following open source or proprietary software
-----------------------------------------------------------
-	Apache Cordova
-	JQuery Mobile
-	HSQL	
-	OpenCV
+###Open source or proprietary software
+* Apache Cordova
+* JQuery Mobile
+* HSQL	
+* OpenCV
 
-It's cool because
----------------------
-	It is a machine learning application
-	It can support multiple mobile platform	
-	It can support different screen-resolution automatically
-	It can demonstrate how to upgrade the system without IT help
+###Highlights
+* It is a machine learning application
+* It can support multiple mobile platform	
+* It can support different screen-resolution automatically
+* It can demonstrate how to upgrade the system without IT help
 
 
 
