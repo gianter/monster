@@ -3,7 +3,7 @@
 
 Monster Finder is an application that can use camera to capture user's face to recognize user's identification for security authentication in mobile device.
 
-###Modules:
+###Modules
 
 Our application have 2 modules
 
