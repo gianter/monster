@@ -3,6 +3,20 @@
 
 Monster Finder is an application that can use camera to capture user's face to recognize user's identification for security authentication in mobile device.
 
+###Modules:
+
+Our application have 2 modules
+
+	* [finder-mobile]: it's an Apache Cordova application, for now it already provides Android support. But with Cordorva's implementation, it's very easy to add other platform (list IOS, BlackBarry) support.
+	
+	* [finderRI]: it's the service layer of our application. We provide such features.
+	
+		* REST service for the mobile client
+		
+		* In-Memory database to store client's information
+		
+		* OpenCV implementation to detect user's face and recognize user's identification 
+		
 ###Technologies and architecture
 
 We used the following technologies and architecture:
@@ -37,16 +51,6 @@ It's cool because
 	It can demonstrate how to upgrade the system without IT help
 
 
-Our application have 2 modules
------------------------------------
-	[finder-mobile]: it's an Apache Cordova application, for now it already provides Android support. But with Cordorva's implementation, it's very easy to add other platform (list IOS, BlackBarry) support.
-	
-	[finderRI]: it's the service layer of our application. We provide such features.
-	
-		* REST service for the mobile client
-		
-		* In-Memory database to store client's information
-		
-		* OpenCV implementation to detect user's face and recognize user's identification 
+
 		 
 	  
