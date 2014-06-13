@@ -3,12 +3,14 @@
 
 Monster Finder is an application that can use camera to capture user's face to recognize user's identification for security authentication in mobile device.
 
-###We used the following technologies and architecture
+###Technologies and architecture
 
-	HTML5	
-	REST Service	
-	Memory Database
-	Machine Learning for Face detection and recognition
+We used the following technologies and architecture:
+
+	* HTML5	
+	* REST Service	
+	* Memory Database
+	* Machine Learning for Face detection and recognition
 
 Our code is designed to
 ---------------------------
